@@ -10,6 +10,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.os.Environment;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,15 +23,22 @@ import android.widget.Toast;
 import com.google.android.material.button.MaterialButton;
 
 import java.io.File;
+import java.io.IOException;
 
 public class HomeFragment extends Fragment {
+
+    Handler timeHandler = new Handler();
+    Runnable timerRunnable;
+    long recordingStartTime = 0;
+
     MaterialButton btnRecord;
     Button btnPlay, btnSave;
     MediaRecorder mediaRecorder;
     MediaPlayer mediaPlayer;
     EditText edtTitle;
-    TextView txtFilePath;
+    TextView txtFilePath, txtRecordingTime;
     boolean isRecording = false;
+    boolean isTimerPaused = true;
 
     private String getRecordingFilePath(String fileTitle) {
         String title = fileTitle != null ? fileTitle : "testRecordingFile";
@@ -37,6 +46,67 @@ public class HomeFragment extends Fragment {
         File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
         File file = new File(musicDirectory, title + ".mp3");
         return file.getPath();
+    }
+
+    private void startTimer() {
+        timerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!isTimerPaused) {
+                    long elapsedMillis = SystemClock.elapsedRealtime() - recordingStartTime;
+                    updateRecordingTime(elapsedMillis);
+                }
+                timeHandler.postDelayed(this, 1000);
+            }
+        };
+        timeHandler.post(timerRunnable);
+    }
+
+    private void updateRecordingTime(long elapsedMillis) {
+        long elapsedSeconds = elapsedMillis / 1000;
+        long hours = elapsedSeconds / 3600;
+        long minutes = (elapsedSeconds % 3600) / 60;
+        long seconds = elapsedSeconds % 60;
+        String formattedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        txtRecordingTime.setText(formattedTime);
+    }
+
+    private void startRecording() throws IOException {
+        try {
+            isTimerPaused = false;
+            mediaRecorder = new MediaRecorder();
+
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+            mediaRecorder.setOutputFile(getRecordingFilePath(edtTitle.getText().toString()));
+            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+            mediaRecorder.prepare();
+
+            mediaRecorder.start();
+
+            btnRecord.setIconResource(R.drawable.square);
+            isRecording = true;
+            txtFilePath.setText(getRecordingFilePath(edtTitle.getText().toString()));
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        // start timer
+        recordingStartTime = SystemClock.elapsedRealtime();
+        startTimer();
+
+        Toast.makeText(requireActivity(), "Recording is started", Toast.LENGTH_SHORT).show();
+    }
+
+    private void stopRecording() {
+        mediaRecorder.stop();
+        mediaRecorder.release();
+        mediaRecorder = null;
+
+        btnRecord.setIconResource(R.drawable.mic);
+
+        // stop timer
+        timeHandler.removeCallbacks(timerRunnable);
     }
 
     @Override
@@ -48,6 +118,7 @@ public class HomeFragment extends Fragment {
         btnSave = (Button) requireView().findViewById(R.id.btnSave);
         edtTitle = (EditText) requireView().findViewById(R.id.edtTitle);
         txtFilePath = (TextView) requireView().findViewById(R.id.txtFilePath);
+        txtRecordingTime = (TextView) requireView().findViewById(R.id.txtRecordingTime);
 
         btnPlay.setEnabled(false);
 
@@ -56,25 +127,23 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if (isRecording) {
-                    btnRecord.setIconResource(R.drawable.mic);
-                    mediaRecorder.stop();
-                    Toast.makeText(requireActivity(), "Recording is stopped", Toast.LENGTH_SHORT).show();
+                    mediaRecorder.pause();
+
                     isRecording = false;
+                    isTimerPaused = true;
+                    btnRecord.setIconResource(R.drawable.mic);
+
+                    Toast.makeText(requireActivity(), "Recording is stopped", Toast.LENGTH_SHORT).show();
+                } else if (mediaRecorder != null) {
+                    mediaRecorder.resume();
+
+                    btnRecord.setIconResource(R.drawable.square);
+                    isTimerPaused = false;
+                    isRecording = true;
                 } else {
                     try {
-                        btnRecord.setIconResource(R.drawable.square);
-                        mediaRecorder = new MediaRecorder();
-                        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-                        mediaRecorder.setOutputFile(getRecordingFilePath(edtTitle.getText().toString()));
-                        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-                        mediaRecorder.prepare();
-                        mediaRecorder.start();
-                        isRecording = true;
-                        txtFilePath.setText(edtTitle.getText().toString());
-
-                        Toast.makeText(requireActivity(), "Recording is started", Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {
+                        startRecording();
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
@@ -100,13 +169,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if (mediaRecorder != null) {
-                    if (isRecording) {
-                        btnRecord.setIconResource(R.drawable.mic);
-                        mediaRecorder.stop();
-                    }
-                    mediaRecorder.release();
-                    mediaRecorder = null;
-
+                    stopRecording();
                     Toast.makeText(requireActivity(), "Recording is saved", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(requireActivity(), "Nothing to save", Toast.LENGTH_SHORT).show();
@@ -125,4 +188,12 @@ public class HomeFragment extends Fragment {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
+
+//    @Override
+//    public void onDestroy() {
+//        super.onDestroy();
+//        if (mediaRecorder != null && isRecording) {
+//            stopRecording();
+//        }
+//    }
 }
