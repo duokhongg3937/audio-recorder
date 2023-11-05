@@ -30,7 +30,9 @@ public class HomeFragment extends Fragment {
     Handler timeHandler = new Handler();
     Runnable timerRunnable;
     long recordingStartTime = 0;
-
+    long pausingStartTime = 0;
+    long pausingEndTime = 0;
+    long totalPauseTime = 0;
     MaterialButton btnRecord;
     Button btnPlay, btnSave;
     MediaRecorder mediaRecorder;
@@ -53,7 +55,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void run() {
                 if (!isTimerPaused) {
-                    long elapsedMillis = SystemClock.elapsedRealtime() - recordingStartTime;
+                    long elapsedMillis = SystemClock.elapsedRealtime() - recordingStartTime - totalPauseTime;
                     updateRecordingTime(elapsedMillis);
                 }
                 timeHandler.postDelayed(this, 1000);
@@ -128,7 +130,7 @@ public class HomeFragment extends Fragment {
             public void onClick(View view) {
                 if (isRecording) {
                     mediaRecorder.pause();
-
+                    pausingStartTime = SystemClock.elapsedRealtime();
                     isRecording = false;
                     isTimerPaused = true;
                     btnRecord.setIconResource(R.drawable.mic);
@@ -136,7 +138,8 @@ public class HomeFragment extends Fragment {
                     Toast.makeText(requireActivity(), "Recording is stopped", Toast.LENGTH_SHORT).show();
                 } else if (mediaRecorder != null) {
                     mediaRecorder.resume();
-
+                    pausingEndTime = SystemClock.elapsedRealtime();
+                    totalPauseTime = totalPauseTime + (pausingEndTime - pausingStartTime);
                     btnRecord.setIconResource(R.drawable.square);
                     isTimerPaused = false;
                     isRecording = true;
