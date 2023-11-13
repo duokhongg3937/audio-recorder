@@ -22,11 +22,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class RecordsFragment extends Fragment {
+public class RecordsFragment extends Fragment implements FragmentCallbacks {
 
     ListView listRecords;
     List<File> listRecordsData;
     MediaPlayer mediaPlayer;
+    MainActivity mainActivity;
+
+
 
     private String getRecordingFilePath(String fileTitle) {
         ContextWrapper contextWrapper = new ContextWrapper(requireActivity().getApplicationContext());
@@ -46,7 +49,7 @@ public class RecordsFragment extends Fragment {
             }
         }
 
-        return new ArrayList<>(); //
+        return new ArrayList<>();
     }
 
     @Override
@@ -95,5 +98,9 @@ public class RecordsFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         mediaPlayer = null;
+    }
+
+    @Override
+    public void onMessageFromMainToFragment(String message) {
     }
 }

@@ -12,6 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:icon="@drawable/record"
+        android:iconTint="@color/cardview_dark_background"
         android:title="Records" />
     <item
         android:id="@+id/category"
