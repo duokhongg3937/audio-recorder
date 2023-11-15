@@ -24,34 +24,56 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 
 public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.OnTimerClickListener {
     AppCompatButton btnRecord;
-    Button btnPlay, btnSave;
+    Button btnPlay, btnSave, btnCancel, btnOk;
     MediaRecorder mediaRecorder;
-    EditText edtTitle;
+    EditText edtTitle, fileNameInput;
     TextView txtFilePath, txtRecordingTime;
     boolean isRecording = false;
     boolean isPaused = true;
     Timer timer;
     String filePath = "";
     String recordingTime = "";
+    BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
+    View bottomSheetBg;
+    String currentRecordingFilePath;
+    String currentFileName;
 
 
-    private String getRecordingFilePath(String fileTitle) {
-        String title = fileTitle != null ? fileTitle : "testRecordingFile";
+    private String generateOutputFilePath() {
+        String timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss", Locale.getDefault()).format(new Date());
         ContextWrapper contextWrapper = new ContextWrapper(requireActivity().getApplicationContext());
         File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
-        File file = new File(musicDirectory, title + ".mp3");
+        File file = new File(musicDirectory, "record-" + timeStamp + ".mp3");
         return file.getPath();
+    }
+
+    private String generateOutputFilePath(String fileName) {
+        ContextWrapper contextWrapper = new ContextWrapper(requireActivity().getApplicationContext());
+        File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
+        File file = new File(musicDirectory, fileName + ".mp3");
+        return file.getPath();
+    }
+
+    private String getFileName(String filePath) {
+        String[] temp = filePath.split("/");
+        String[] fullFileName = temp[temp.length - 1].split("\\.");
+        return fullFileName[0];
     }
 
     private void startRecording() throws IOException {
@@ -59,17 +81,16 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
             isRecording = true;
             isPaused = false;
             mediaRecorder = new MediaRecorder();
+            currentRecordingFilePath = generateOutputFilePath();
 
             mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-            mediaRecorder.setOutputFile(getRecordingFilePath(edtTitle.getText().toString()));
+            mediaRecorder.setOutputFile(currentRecordingFilePath);
             mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
             mediaRecorder.prepare();
-
             mediaRecorder.start();
 
             btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.square), null, null);
-            txtFilePath.setText(getRecordingFilePath(edtTitle.getText().toString()));
 
             // start timer
             timer.start();
@@ -98,9 +119,16 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
         btnRecord = (AppCompatButton) requireView().findViewById(R.id.btnRecord);
         btnPlay = (Button) requireView().findViewById(R.id.btnPlay);
         btnSave = (Button) requireView().findViewById(R.id.btnSave);
-        edtTitle = (EditText) requireView().findViewById(R.id.edtTitle);
+        btnCancel = requireView().findViewById(R.id.btnCancel);
+        btnOk = requireView().findViewById(R.id.btnOk);
         txtFilePath = (TextView) requireView().findViewById(R.id.txtFilePath);
         txtRecordingTime = (TextView) requireView().findViewById(R.id.txtRecordingTime);
+        fileNameInput = (EditText) requireView().findViewById(R.id.fileNameInput);
+
+        bottomSheetBehavior = BottomSheetBehavior.from(requireView().findViewById(R.id.bottomSheet));
+        bottomSheetBg = requireView().findViewById(R.id.bottomSheetBG);
+        bottomSheetBehavior.setPeekHeight(0);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
         btnSave.setBackgroundResource(R.drawable.button);
         btnPlay.setEnabled(false);
@@ -118,7 +146,6 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
                 } else if (mediaRecorder != null) {
                     mediaRecorder.resume();
                     timer.start();
-                    txtFilePath.setText(getRecordingFilePath(edtTitle.getText().toString()));
                     btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.square), null, null);
                     isPaused = false;
                     isRecording = true;
@@ -140,6 +167,12 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
                     txtFilePath.setText("");
                     txtRecordingTime.setText("");
                     edtTitle.setText("");
+                    currentFileName = getFileName(currentRecordingFilePath);
+
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                    bottomSheetBg.setVisibility(View.VISIBLE);
+                    fileNameInput.setText(currentFileName);
+
                     Toast.makeText(requireActivity(), "Recording is saved", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(requireActivity(), "Nothing to save", Toast.LENGTH_SHORT).show();
@@ -147,6 +180,41 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
 
             }
         });
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                File currentFile = new File(currentRecordingFilePath);
+                currentFile.delete();
+
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                bottomSheetBg.setVisibility(View.GONE);
+            }
+        });
+
+
+        btnOk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String newFileName = fileNameInput.getText().toString();
+                if (!newFileName.equals(currentFileName)) {
+                    File currentFile = new File(currentRecordingFilePath);
+                    File newFile = new File(generateOutputFilePath(newFileName));
+                    if (currentFile.renameTo(newFile)) {
+                        Toast.makeText(requireContext(), "Rename successfully!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(requireContext(), "Rename failed!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                bottomSheetBg.setVisibility(View.GONE);
+            }
+
+
+        });
+
+
     }
 
 

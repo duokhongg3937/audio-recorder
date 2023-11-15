@@ -21,9 +21,11 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.File;
 
@@ -43,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks {
         setContentView(R.layout.activity_main);
 
         bottomNavigationView = (BottomNavigationView) findViewById(R.id.navigationView);
+
         fragmentManager = getSupportFragmentManager();
         homeFragment = new HomeFragment();
         recordsFragment = new RecordsFragment();
@@ -94,6 +97,5 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks {
 
     @Override
     public void onMessageFromFragmentToMain(String sender, String message) {
-        Toast.makeText(getApplication(), "SENDER: " + sender + "\n" + "MESSAGE: " + message, Toast.LENGTH_SHORT).show();
     }
 }
