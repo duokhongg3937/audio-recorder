@@ -24,6 +24,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.duokhongg.audiorecorder.databinding.ActivityMainBinding;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
@@ -38,13 +39,17 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks {
     RecordsFragment recordsFragment;
     CategoryFragment categoryFragment;
     HomeFragment homeFragment;
+    private ActivityMainBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        View view = binding.getRoot();
 
-        bottomNavigationView = (BottomNavigationView) findViewById(R.id.navigationView);
+        setContentView(view);
+
+        bottomNavigationView = binding.navigationView;
 
         fragmentManager = getSupportFragmentManager();
         homeFragment = new HomeFragment();

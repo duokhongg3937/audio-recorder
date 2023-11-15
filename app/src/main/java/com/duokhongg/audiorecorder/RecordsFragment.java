@@ -62,7 +62,7 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
         super.onViewCreated(view, savedInstanceState);
 
         listRecords = requireView().findViewById(R.id.listRecords);
-        mediaPlayer = new MediaPlayer();
+
 
         listRecordsData = getAllRecordsInDirectory();
         List<String> listRecordsName = listRecordsData.stream()
@@ -76,9 +76,11 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
             String selectedRecord  = (String) parent.getItemAtPosition(position);
             Toast.makeText(requireActivity(), selectedRecord + " clicked", Toast.LENGTH_SHORT).show();
             try {
+                mediaPlayer = new MediaPlayer();
                 mediaPlayer.setDataSource(getRecordingFilePath(selectedRecord));
                 mediaPlayer.prepare();
                 mediaPlayer.start();
+                mediaPlayer = null;
             } catch (Exception e) {
                 e.printStackTrace();
             }

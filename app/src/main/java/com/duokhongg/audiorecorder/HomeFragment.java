@@ -28,6 +28,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.duokhongg.audiorecorder.databinding.ActivityMainBinding;
+import com.duokhongg.audiorecorder.databinding.BottomSheetBinding;
+import com.duokhongg.audiorecorder.databinding.FragmentHomeBinding;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
@@ -40,25 +43,26 @@ import java.util.Locale;
 import java.util.Objects;
 
 public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.OnTimerClickListener {
-    AppCompatButton btnRecord;
-    Button btnPlay, btnSave, btnCancel, btnOk;
+    private FragmentHomeBinding homeBinding;
+    Button btnCancel, btnOk;
     MediaRecorder mediaRecorder;
-    EditText edtTitle, fileNameInput;
-    TextView txtFilePath, txtRecordingTime;
+    EditText fileNameInput;
     boolean isRecording = false;
     boolean isPaused = true;
     Timer timer;
     String filePath = "";
     String recordingTime = "";
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
-    View bottomSheetBg;
     String currentRecordingFilePath;
     String currentFileName;
     BottomNavigationView bottomNavigationView;
 
+    public HomeFragment() {
+    }
+
 
     private String generateOutputFilePath() {
-        String timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss", Locale.getDefault()).format(new Date());
+        String timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault()).format(new Date());
         ContextWrapper contextWrapper = new ContextWrapper(requireActivity().getApplicationContext());
         File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
         File file = new File(musicDirectory, "record-" + timeStamp + ".mp3");
@@ -92,7 +96,7 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
             mediaRecorder.prepare();
             mediaRecorder.start();
 
-            btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.square), null, null);
+            homeBinding.btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.square), null, null);
 
             // start timer
             timer.start();
@@ -109,7 +113,7 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
         mediaRecorder.release();
         mediaRecorder = null;
 
-        btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.mic), null, null);
+        homeBinding.btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.mic), null, null);
 
         timer.stop();
     }
@@ -118,25 +122,19 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        btnRecord = (AppCompatButton) requireView().findViewById(R.id.btnRecord);
-        btnPlay = (Button) requireView().findViewById(R.id.btnPlay);
-        btnSave = (Button) requireView().findViewById(R.id.btnSave);
         btnCancel = requireView().findViewById(R.id.btnCancel);
         btnOk = requireView().findViewById(R.id.btnOk);
-        txtFilePath = (TextView) requireView().findViewById(R.id.txtFilePath);
-        txtRecordingTime = (TextView) requireView().findViewById(R.id.txtRecordingTime);
         fileNameInput = (EditText) requireView().findViewById(R.id.fileNameInput);
         bottomNavigationView = requireActivity().findViewById(R.id.navigationView);
 
         bottomSheetBehavior = BottomSheetBehavior.from(requireView().findViewById(R.id.bottomSheet));
-        bottomSheetBg = requireView().findViewById(R.id.bottomSheetBG);
         bottomSheetBehavior.setPeekHeight(0);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
-        btnSave.setBackgroundResource(R.drawable.button);
-        btnPlay.setEnabled(false);
+        homeBinding.btnSave.setBackgroundResource(R.drawable.button);
+        homeBinding.btnPlay.setEnabled(false);
 
-        btnRecord.setOnClickListener(new View.OnClickListener() {
+        homeBinding.btnRecord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (isRecording) {
@@ -144,12 +142,12 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
                     isRecording = false;
                     isPaused = true;
                     timer.pause();
-                    btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.mic), null, null);
+                    homeBinding.btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.mic), null, null);
                     Toast.makeText(requireActivity(), "Recording is stopped", Toast.LENGTH_SHORT).show();
                 } else if (mediaRecorder != null) {
                     mediaRecorder.resume();
                     timer.start();
-                    btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.square), null, null);
+                    homeBinding.btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.square), null, null);
                     isPaused = false;
                     isRecording = true;
                 } else {
@@ -162,19 +160,19 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
             }
         });
 
-        btnSave.setOnClickListener(new View.OnClickListener() {
+        homeBinding.btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (mediaRecorder != null) {
                     stopRecording();
-                    txtFilePath.setText("");
-                    txtRecordingTime.setText("");
+                    homeBinding.txtFilePath.setText("");
+                    homeBinding.txtRecordingTime.setText("");
                     currentFileName = getFileName(currentRecordingFilePath);
 
                     bottomNavigationView.setVisibility(View.GONE);
-
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                    bottomSheetBg.setVisibility(View.VISIBLE);
+
+                    homeBinding.bottomSheetBG.setVisibility(View.VISIBLE);
                     fileNameInput.setText(currentFileName);
 
                     Toast.makeText(requireActivity(), "Recording is saved", Toast.LENGTH_SHORT).show();
@@ -192,7 +190,7 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
                 currentFile.delete();
 
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                bottomSheetBg.setVisibility(View.GONE);
+                homeBinding.bottomSheetBG.setVisibility(View.GONE);
                 bottomNavigationView.setVisibility(View.VISIBLE);
             }
         });
@@ -213,14 +211,10 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
                 }
 
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                bottomSheetBg.setVisibility(View.GONE);
+                homeBinding.bottomSheetBG.setVisibility(View.GONE);
                 bottomNavigationView.setVisibility(View.VISIBLE);
             }
-
-
         });
-
-
     }
 
 
@@ -229,9 +223,9 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
                              Bundle savedInstanceState) {
         timer = new Timer();
         timer.setOnTimerCreateListener(this);
-
+        homeBinding = FragmentHomeBinding.inflate(inflater, container, false);
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_home, container, false);
+        return homeBinding.getRoot();
     }
 
     @Override
@@ -240,21 +234,21 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
 
     @Override
     public void onTimerTick(String value) {
-        txtRecordingTime.setText(value);
+        homeBinding.txtRecordingTime.setText(value);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        filePath = txtFilePath.getText().toString();
-        recordingTime = txtRecordingTime.getText().toString();
+        filePath = homeBinding.txtFilePath.getText().toString();
+        recordingTime = homeBinding.txtRecordingTime.getText().toString();
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        txtFilePath.setText(filePath);
-        txtRecordingTime.setText(recordingTime);
+        homeBinding.txtFilePath.setText(filePath);
+        homeBinding.txtRecordingTime.setText(recordingTime);
     }
 }
