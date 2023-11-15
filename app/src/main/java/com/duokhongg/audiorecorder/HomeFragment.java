@@ -54,6 +54,7 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
     View bottomSheetBg;
     String currentRecordingFilePath;
     String currentFileName;
+    BottomNavigationView bottomNavigationView;
 
 
     private String generateOutputFilePath() {
@@ -125,6 +126,7 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
         txtFilePath = (TextView) requireView().findViewById(R.id.txtFilePath);
         txtRecordingTime = (TextView) requireView().findViewById(R.id.txtRecordingTime);
         fileNameInput = (EditText) requireView().findViewById(R.id.fileNameInput);
+        bottomNavigationView = requireActivity().findViewById(R.id.navigationView);
 
         bottomSheetBehavior = BottomSheetBehavior.from(requireView().findViewById(R.id.bottomSheet));
         bottomSheetBg = requireView().findViewById(R.id.bottomSheetBG);
@@ -169,6 +171,8 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
                     txtRecordingTime.setText("");
                     currentFileName = getFileName(currentRecordingFilePath);
 
+                    bottomNavigationView.setVisibility(View.GONE);
+
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                     bottomSheetBg.setVisibility(View.VISIBLE);
                     fileNameInput.setText(currentFileName);
@@ -189,6 +193,7 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
 
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                 bottomSheetBg.setVisibility(View.GONE);
+                bottomNavigationView.setVisibility(View.VISIBLE);
             }
         });
 
@@ -209,6 +214,7 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
 
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                 bottomSheetBg.setVisibility(View.GONE);
+                bottomNavigationView.setVisibility(View.VISIBLE);
             }
 
 
