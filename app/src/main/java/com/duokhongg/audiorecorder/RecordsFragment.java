@@ -40,6 +40,14 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
         return file.getPath();
     }
 
+    private void deleteRecord(String fileName) {
+        ContextWrapper contextWrapper = new ContextWrapper(requireActivity().getApplicationContext());
+        File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
+        File file = new File(musicDirectory, fileName);
+        file.delete();
+    }
+
+
     private List<File> getAllRecordsInDirectory() {
         ContextWrapper contextWrapper = new ContextWrapper(requireActivity().getApplicationContext());
         File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
@@ -78,14 +86,15 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
 
         listRecords.setOnItemClickListener((parent, view1, position, id) -> {
 
-            String selectedRecord  = (String) parent.getItemAtPosition(position);
+            String selectedRecord = (String) parent.getItemAtPosition(position);
 
             if (is_delete_mode) {
-               //listRecordsName.remove(position);
-               //listRecords.deferNotifyDataSetChanged();
-               Toast.makeText(requireActivity(), selectedRecord + " is deleted.", Toast.LENGTH_SHORT).show();
-            }
-            else{
+                deleteRecord(selectedRecord);
+                listRecordsName.remove(position);
+                adapter.notifyDataSetChanged();
+
+                Toast.makeText(requireActivity(), selectedRecord + " is deleted.", Toast.LENGTH_SHORT).show();
+            } else {
                 Toast.makeText(requireActivity(), selectedRecord + " is clicked.", Toast.LENGTH_SHORT).show();
                 try {
                     mediaPlayer.setDataSource(getRecordingFilePath(selectedRecord));
@@ -101,10 +110,9 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
             @Override
             public void onClick(View v) {
                 is_delete_mode = !is_delete_mode;
-                if(is_delete_mode){
+                if (is_delete_mode) {
                     Toast.makeText(requireActivity(), " Delete mode: Enabled", Toast.LENGTH_SHORT).show();
-                }
-                else{
+                } else {
                     Toast.makeText(requireActivity(), " Delete mode: Disabled", Toast.LENGTH_SHORT).show();
                 }
             }
