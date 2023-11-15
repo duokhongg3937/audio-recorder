@@ -28,6 +28,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
 
@@ -166,7 +167,6 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
                     stopRecording();
                     txtFilePath.setText("");
                     txtRecordingTime.setText("");
-                    edtTitle.setText("");
                     currentFileName = getFileName(currentRecordingFilePath);
 
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
