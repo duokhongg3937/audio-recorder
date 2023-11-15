@@ -24,93 +24,88 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.duokhongg.audiorecorder.databinding.ActivityMainBinding;
+import com.duokhongg.audiorecorder.databinding.BottomSheetBinding;
+import com.duokhongg.audiorecorder.databinding.FragmentHomeBinding;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 
 public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.OnTimerClickListener {
-
-    Handler timeHandler = new Handler();
-    Runnable timerRunnable;
-    long recordingStartTime = 0;
-    long pausingStartTime = 0;
-    long pausingEndTime = 0;
-    long totalPauseTime = 0;
-    AppCompatButton btnRecord;
-    Button btnPlay, btnSave;
+    private FragmentHomeBinding homeBinding;
+    Button btnCancel, btnOk;
     MediaRecorder mediaRecorder;
-    MediaPlayer mediaPlayer;
-    EditText edtTitle;
-    TextView txtFilePath, txtRecordingTime;
+    EditText fileNameInput;
     boolean isRecording = false;
-    boolean isTimerPaused = true;
-    MainActivity mainActivity;
+    boolean isPaused = true;
     Timer timer;
     String filePath = "";
     String recordingTime = "";
+    BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
+    String currentRecordingFilePath;
+    String currentFileName;
+    BottomNavigationView bottomNavigationView;
+
+    public HomeFragment() {
+    }
 
 
-    private String getRecordingFilePath(String fileTitle) {
-        String title = fileTitle != null ? fileTitle : "testRecordingFile";
+    private String generateOutputFilePath() {
+        String timeStamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault()).format(new Date());
         ContextWrapper contextWrapper = new ContextWrapper(requireActivity().getApplicationContext());
         File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
-        File file = new File(musicDirectory, title + ".mp3");
+        File file = new File(musicDirectory, "record-" + timeStamp + ".mp3");
         return file.getPath();
     }
 
-    private void startTimer() {
-        timerRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (!isTimerPaused) {
-                    long elapsedMillis = SystemClock.elapsedRealtime() - recordingStartTime - totalPauseTime;
-                    updateRecordingTime(elapsedMillis);
-                }
-                timeHandler.postDelayed(this, 1000);
-            }
-        };
-        timeHandler.post(timerRunnable);
+    private String generateOutputFilePath(String fileName) {
+        ContextWrapper contextWrapper = new ContextWrapper(requireActivity().getApplicationContext());
+        File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
+        File file = new File(musicDirectory, fileName + ".mp3");
+        return file.getPath();
     }
 
-    private void updateRecordingTime(long elapsedMillis) {
-        long elapsedSeconds = elapsedMillis / 1000;
-        long hours = elapsedSeconds / 3600;
-        long minutes = (elapsedSeconds % 3600) / 60;
-        long seconds = elapsedSeconds % 60;
-        String formattedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds);
-        txtRecordingTime.setText(formattedTime);
+    private String getFileName(String filePath) {
+        String[] temp = filePath.split("/");
+        String[] fullFileName = temp[temp.length - 1].split("\\.");
+        return fullFileName[0];
     }
 
     private void startRecording() throws IOException {
         try {
-            isTimerPaused = false;
+            isRecording = true;
+            isPaused = false;
             mediaRecorder = new MediaRecorder();
+            currentRecordingFilePath = generateOutputFilePath();
 
             mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-            mediaRecorder.setOutputFile(getRecordingFilePath(edtTitle.getText().toString()));
+            mediaRecorder.setOutputFile(currentRecordingFilePath);
             mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
             mediaRecorder.prepare();
-
             mediaRecorder.start();
 
-            btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.square), null, null);
-            isRecording = true;
-            txtFilePath.setText(getRecordingFilePath(edtTitle.getText().toString()));
+            homeBinding.btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.square), null, null);
+
+            // start timer
+            timer.start();
+
+            Toast.makeText(requireActivity(), "Recording is started", Toast.LENGTH_SHORT).show();
         } catch(Exception e) {
             e.printStackTrace();
         }
 
-        // start timer
-        recordingStartTime = SystemClock.elapsedRealtime();
-        startTimer();
-
-        Toast.makeText(requireActivity(), "Recording is started", Toast.LENGTH_SHORT).show();
     }
 
     private void stopRecording() {
@@ -118,50 +113,42 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
         mediaRecorder.release();
         mediaRecorder = null;
 
-        btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.mic), null, null);
+        homeBinding.btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.mic), null, null);
 
-        // stop timer
-        timeHandler.removeCallbacks(timerRunnable);
-        totalPauseTime = 0;
+        timer.stop();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        btnRecord = (AppCompatButton) requireView().findViewById(R.id.btnRecord);
-        btnPlay = (Button) requireView().findViewById(R.id.btnPlay);
-        btnSave = (Button) requireView().findViewById(R.id.btnSave);
-        edtTitle = (EditText) requireView().findViewById(R.id.edtTitle);
-        txtFilePath = (TextView) requireView().findViewById(R.id.txtFilePath);
-        txtRecordingTime = (TextView) requireView().findViewById(R.id.txtRecordingTime);
+        btnCancel = requireView().findViewById(R.id.btnCancel);
+        btnOk = requireView().findViewById(R.id.btnOk);
+        fileNameInput = (EditText) requireView().findViewById(R.id.fileNameInput);
+        bottomNavigationView = requireActivity().findViewById(R.id.navigationView);
 
-        btnSave.setBackgroundResource(R.drawable.button);
+        bottomSheetBehavior = BottomSheetBehavior.from(requireView().findViewById(R.id.bottomSheet));
+        bottomSheetBehavior.setPeekHeight(0);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
-        timer = new Timer();
-        timer.setOnTimerClickListener(this);
+        homeBinding.btnSave.setBackgroundResource(R.drawable.button);
+        homeBinding.btnPlay.setEnabled(false);
 
-        btnPlay.setEnabled(false);
-
-
-        btnRecord.setOnClickListener(new View.OnClickListener() {
+        homeBinding.btnRecord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (isRecording) {
                     mediaRecorder.pause();
-                    pausingStartTime = SystemClock.elapsedRealtime();
                     isRecording = false;
-                    isTimerPaused = true;
-                    btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.mic), null, null);
-
+                    isPaused = true;
+                    timer.pause();
+                    homeBinding.btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.mic), null, null);
                     Toast.makeText(requireActivity(), "Recording is stopped", Toast.LENGTH_SHORT).show();
                 } else if (mediaRecorder != null) {
                     mediaRecorder.resume();
-                    txtFilePath.setText(getRecordingFilePath(edtTitle.getText().toString()));
-                    pausingEndTime = SystemClock.elapsedRealtime();
-                    totalPauseTime = totalPauseTime + (pausingEndTime - pausingStartTime);
-                    btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.square), null, null);
-                    isTimerPaused = false;
+                    timer.start();
+                    homeBinding.btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.square), null, null);
+                    isPaused = false;
                     isRecording = true;
                 } else {
                     try {
@@ -173,29 +160,21 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
             }
         });
 
-        btnPlay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    mediaPlayer = new MediaPlayer();
-                    mediaPlayer.setDataSource(getRecordingFilePath(edtTitle.getText().toString()));
-                    mediaPlayer.prepare();
-                    mediaPlayer.start();
-                    Toast.makeText(requireActivity(), "Recording is playing", Toast.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        btnSave.setOnClickListener(new View.OnClickListener() {
+        homeBinding.btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (mediaRecorder != null) {
                     stopRecording();
-                    txtFilePath.setText("");
-                    txtRecordingTime.setText("");
-                    edtTitle.setText("");
+                    homeBinding.txtFilePath.setText("");
+                    homeBinding.txtRecordingTime.setText("");
+                    currentFileName = getFileName(currentRecordingFilePath);
+
+                    bottomNavigationView.setVisibility(View.GONE);
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+
+                    homeBinding.bottomSheetBG.setVisibility(View.VISIBLE);
+                    fileNameInput.setText(currentFileName);
+
                     Toast.makeText(requireActivity(), "Recording is saved", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(requireActivity(), "Nothing to save", Toast.LENGTH_SHORT).show();
@@ -204,62 +183,72 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
             }
         });
 
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                File currentFile = new File(currentRecordingFilePath);
+                currentFile.delete();
 
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                homeBinding.bottomSheetBG.setVisibility(View.GONE);
+                bottomNavigationView.setVisibility(View.VISIBLE);
+            }
+        });
+
+
+        btnOk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String newFileName = fileNameInput.getText().toString();
+                if (!newFileName.equals(currentFileName)) {
+                    File currentFile = new File(currentRecordingFilePath);
+                    File newFile = new File(generateOutputFilePath(newFileName));
+                    if (currentFile.renameTo(newFile)) {
+                        Toast.makeText(requireContext(), "Rename successfully!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(requireContext(), "Rename failed!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                homeBinding.bottomSheetBG.setVisibility(View.GONE);
+                bottomNavigationView.setVisibility(View.VISIBLE);
+            }
+        });
     }
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        timer = new Timer();
+        timer.setOnTimerCreateListener(this);
+        homeBinding = FragmentHomeBinding.inflate(inflater, container, false);
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_home, container, false);
+        return homeBinding.getRoot();
     }
 
     @Override
     public void onMessageFromMainToFragment(String message) {
     }
 
-    private void showConfirmationDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-
-        builder.setTitle("Confirmation")
-                .setMessage("Do you want to continue?")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // User clicked Yes, continue with the operation
-                        // Add your logic here
-                    }
-                })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // User clicked No, cancel the operation
-                        // Add your logic here or simply dismiss the dialog
-                        dialog.dismiss();
-                    }
-                });
-
-        // Create and show the AlertDialog
-        AlertDialog dialog = builder.create();
-        dialog.show();
-    }
-
     @Override
     public void onTimerTick(String value) {
-        System.out.println(value);
+        homeBinding.txtRecordingTime.setText(value);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        filePath = txtFilePath.getText().toString();
-        recordingTime = txtRecordingTime.getText().toString();
+        filePath = homeBinding.txtFilePath.getText().toString();
+        recordingTime = homeBinding.txtRecordingTime.getText().toString();
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        txtFilePath.setText(filePath);
-        txtRecordingTime.setText(recordingTime);
+        homeBinding.txtFilePath.setText(filePath);
+        homeBinding.txtRecordingTime.setText(recordingTime);
     }
 }

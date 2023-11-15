@@ -22,27 +22,45 @@ public class Timer {
             public void run() {
                 duration += delay;
                 handler.postDelayed(runnable, delay);
-                onTimerClickListener.onTimerTick(String.valueOf(duration));
+                onTimerClickListener.onTimerTick(format());
             }
         };
     }
 
-    private void start() {
+    public void start() {
         handler.postDelayed(runnable, delay);
     }
 
-    private void pause() {
+    public void pause() {
         handler.removeCallbacks(runnable);
     }
 
-    private void stop() {
+    public void stop() {
         handler.removeCallbacks(runnable);
         duration = 0L;
     }
 
-    public void setOnTimerClickListener(OnTimerClickListener listener) {
+    public String format() {
+        long millis = duration % 1000;
+        long seconds = (duration / 1000) % 60;
+        long minutes = (duration / (1000 * 60)) % 60;
+        long hours = (duration / (1000 * 60 * 60));
+
+        String formatted;
+        if (hours > 0) {
+            formatted = String.format("%02d:%02d:%02d.%02d", hours, minutes, seconds, millis / 10);
+        } else {
+            formatted = String.format("%02d:%02d.%02d", minutes, seconds, millis / 10);
+        }
+
+        return formatted;
+    }
+
+    public void setOnTimerCreateListener(OnTimerClickListener listener) {
         this.onTimerClickListener = listener;
     }
+
+
 
 
 

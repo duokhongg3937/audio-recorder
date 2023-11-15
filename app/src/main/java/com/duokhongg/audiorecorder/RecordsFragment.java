@@ -64,6 +64,7 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
         super.onViewCreated(view, savedInstanceState);
 
         listRecords = requireView().findViewById(R.id.listRecords);
+
         btnDelete = requireView().findViewById(R.id.btnDelete);
         mediaPlayer = new MediaPlayer();
 
@@ -78,6 +79,7 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
         listRecords.setOnItemClickListener((parent, view1, position, id) -> {
 
             String selectedRecord  = (String) parent.getItemAtPosition(position);
+
             if (is_delete_mode) {
                //listRecordsName.remove(position);
                //listRecords.deferNotifyDataSetChanged();
