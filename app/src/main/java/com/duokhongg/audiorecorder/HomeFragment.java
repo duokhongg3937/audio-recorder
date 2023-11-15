@@ -34,22 +34,13 @@ import java.io.IOException;
 import java.util.Objects;
 
 public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.OnTimerClickListener {
-
-    Handler timeHandler = new Handler();
-    Runnable timerRunnable;
-    long recordingStartTime = 0;
-    long pausingStartTime = 0;
-    long pausingEndTime = 0;
-    long totalPauseTime = 0;
     AppCompatButton btnRecord;
     Button btnPlay, btnSave;
     MediaRecorder mediaRecorder;
-    MediaPlayer mediaPlayer;
     EditText edtTitle;
     TextView txtFilePath, txtRecordingTime;
     boolean isRecording = false;
-    boolean isTimerPaused = true;
-    MainActivity mainActivity;
+    boolean isPaused = true;
     Timer timer;
     String filePath = "";
     String recordingTime = "";
@@ -63,32 +54,10 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
         return file.getPath();
     }
 
-    private void startTimer() {
-        timerRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (!isTimerPaused) {
-                    long elapsedMillis = SystemClock.elapsedRealtime() - recordingStartTime - totalPauseTime;
-                    updateRecordingTime(elapsedMillis);
-                }
-                timeHandler.postDelayed(this, 1000);
-            }
-        };
-        timeHandler.post(timerRunnable);
-    }
-
-    private void updateRecordingTime(long elapsedMillis) {
-        long elapsedSeconds = elapsedMillis / 1000;
-        long hours = elapsedSeconds / 3600;
-        long minutes = (elapsedSeconds % 3600) / 60;
-        long seconds = elapsedSeconds % 60;
-        String formattedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds);
-        txtRecordingTime.setText(formattedTime);
-    }
-
     private void startRecording() throws IOException {
         try {
-            isTimerPaused = false;
+            isRecording = true;
+            isPaused = false;
             mediaRecorder = new MediaRecorder();
 
             mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
@@ -100,17 +69,16 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
             mediaRecorder.start();
 
             btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.square), null, null);
-            isRecording = true;
             txtFilePath.setText(getRecordingFilePath(edtTitle.getText().toString()));
+
+            // start timer
+            timer.start();
+
+            Toast.makeText(requireActivity(), "Recording is started", Toast.LENGTH_SHORT).show();
         } catch(Exception e) {
             e.printStackTrace();
         }
 
-        // start timer
-        recordingStartTime = SystemClock.elapsedRealtime();
-        startTimer();
-
-        Toast.makeText(requireActivity(), "Recording is started", Toast.LENGTH_SHORT).show();
     }
 
     private void stopRecording() {
@@ -120,9 +88,7 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
 
         btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.mic), null, null);
 
-        // stop timer
-        timeHandler.removeCallbacks(timerRunnable);
-        totalPauseTime = 0;
+        timer.stop();
     }
 
     @Override
@@ -137,31 +103,24 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
         txtRecordingTime = (TextView) requireView().findViewById(R.id.txtRecordingTime);
 
         btnSave.setBackgroundResource(R.drawable.button);
-
-        timer = new Timer();
-        timer.setOnTimerClickListener(this);
-
         btnPlay.setEnabled(false);
-
 
         btnRecord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (isRecording) {
                     mediaRecorder.pause();
-                    pausingStartTime = SystemClock.elapsedRealtime();
                     isRecording = false;
-                    isTimerPaused = true;
+                    isPaused = true;
+                    timer.pause();
                     btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.mic), null, null);
-
                     Toast.makeText(requireActivity(), "Recording is stopped", Toast.LENGTH_SHORT).show();
                 } else if (mediaRecorder != null) {
                     mediaRecorder.resume();
+                    timer.start();
                     txtFilePath.setText(getRecordingFilePath(edtTitle.getText().toString()));
-                    pausingEndTime = SystemClock.elapsedRealtime();
-                    totalPauseTime = totalPauseTime + (pausingEndTime - pausingStartTime);
                     btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.square), null, null);
-                    isTimerPaused = false;
+                    isPaused = false;
                     isRecording = true;
                 } else {
                     try {
@@ -169,21 +128,6 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                }
-            }
-        });
-
-        btnPlay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    mediaPlayer = new MediaPlayer();
-                    mediaPlayer.setDataSource(getRecordingFilePath(edtTitle.getText().toString()));
-                    mediaPlayer.prepare();
-                    mediaPlayer.start();
-                    Toast.makeText(requireActivity(), "Recording is playing", Toast.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
             }
         });
@@ -203,14 +147,15 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
 
             }
         });
-
-
     }
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        timer = new Timer();
+        timer.setOnTimerCreateListener(this);
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
@@ -219,33 +164,9 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
     public void onMessageFromMainToFragment(String message) {
     }
 
-    private void showConfirmationDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-
-        builder.setTitle("Confirmation")
-                .setMessage("Do you want to continue?")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // User clicked Yes, continue with the operation
-                        // Add your logic here
-                    }
-                })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // User clicked No, cancel the operation
-                        // Add your logic here or simply dismiss the dialog
-                        dialog.dismiss();
-                    }
-                });
-
-        // Create and show the AlertDialog
-        AlertDialog dialog = builder.create();
-        dialog.show();
-    }
-
     @Override
     public void onTimerTick(String value) {
-        System.out.println(value);
+        txtRecordingTime.setText(value);
     }
 
     @Override
