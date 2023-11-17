@@ -1,20 +1,26 @@
 package com.duokhongg.audiorecorder;
 
 import android.content.ContextWrapper;
+import android.content.Intent;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Environment;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import java.io.File;
@@ -25,26 +31,16 @@ import java.util.stream.Collectors;
 
 public class RecordsFragment extends Fragment implements FragmentCallbacks {
 
-    ListView listRecords;
+    RecyclerView listRecords;
     List<File> listRecordsData;
     MediaPlayer mediaPlayer;
-    MainActivity mainActivity;
-    Button btnDelete;
     Boolean is_delete_mode = false;
-
 
     private String getRecordingFilePath(String fileTitle) {
         ContextWrapper contextWrapper = new ContextWrapper(requireActivity().getApplicationContext());
         File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
         File file = new File(musicDirectory, fileTitle);
         return file.getPath();
-    }
-
-    private void deleteRecord(String fileName) {
-        ContextWrapper contextWrapper = new ContextWrapper(requireActivity().getApplicationContext());
-        File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
-        File file = new File(musicDirectory, fileName);
-        file.delete();
     }
 
 
@@ -73,48 +69,36 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
 
         listRecords = requireView().findViewById(R.id.listRecords);
 
-        btnDelete = requireView().findViewById(R.id.btnDelete);
         mediaPlayer = new MediaPlayer();
 
         listRecordsData = getAllRecordsInDirectory();
         List<String> listRecordsName = listRecordsData.stream()
                 .map(File::getName).collect(Collectors.toList());
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, listRecordsName);
+        List<AudioRecord> recordList = new ArrayList<>();
+
+        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+
+        for (File file : listRecordsData) {
+            retriever.setDataSource(file.getPath());
+            String duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+            duration = Helper.formatDuration(duration);
+            String name = file.getName();
+            String lastModified = Helper.formatLastModified(file.lastModified());
+            AudioRecord record = new AudioRecord(name, file.getPath(), lastModified, duration);
+            recordList.add(record);
+        }
+
+        RecordsAdapter adapter = new RecordsAdapter(requireActivity(), recordList);
+        listRecords.setLayoutManager(new LinearLayoutManager(getActivity()));
         listRecords.setAdapter(adapter);
 
-
-        listRecords.setOnItemClickListener((parent, view1, position, id) -> {
-
-            String selectedRecord = (String) parent.getItemAtPosition(position);
-
-            if (is_delete_mode) {
-                deleteRecord(selectedRecord);
-                listRecordsName.remove(position);
-                adapter.notifyDataSetChanged();
-
-                Toast.makeText(requireActivity(), selectedRecord + " is deleted.", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(requireActivity(), selectedRecord + " is clicked.", Toast.LENGTH_SHORT).show();
-                try {
-                    mediaPlayer.setDataSource(getRecordingFilePath(selectedRecord));
-                    mediaPlayer.prepare();
-                    mediaPlayer.start();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        btnDelete.setOnClickListener(new View.OnClickListener() {
+        adapter.setOnItemClickListener(new RecordsAdapter.OnItemClickListener() {
             @Override
-            public void onClick(View v) {
-                is_delete_mode = !is_delete_mode;
-                if (is_delete_mode) {
-                    Toast.makeText(requireActivity(), " Delete mode: Enabled", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(requireActivity(), " Delete mode: Disabled", Toast.LENGTH_SHORT).show();
-                }
+            public void onItemClick(int pos) {
+                Intent intent = new Intent(requireContext(), DetailActivity.class);
+                intent.putExtra("file_path", listRecordsData.get(pos).getPath());
+                startActivity(intent);
             }
         });
     }
@@ -136,4 +120,6 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
     @Override
     public void onMessageFromMainToFragment(String message) {
     }
+
+
 }

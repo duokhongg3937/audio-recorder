@@ -132,7 +132,6 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
         homeBinding.btnSave.setBackgroundResource(R.drawable.button);
-        homeBinding.btnPlay.setEnabled(false);
 
         homeBinding.btnRecord.setOnClickListener(new View.OnClickListener() {
             @Override
