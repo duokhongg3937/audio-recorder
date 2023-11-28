@@ -8,10 +8,12 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
 import android.content.ContextWrapper;
 import android.content.pm.PackageManager;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Build;
@@ -29,6 +31,9 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity implements MainCallbacks {
@@ -40,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks {
     CategoryFragment categoryFragment;
     HomeFragment homeFragment;
     private ActivityMainBinding binding;
+    private RecordViewModel recordViewModel;
+    DatabaseHandler db = new DatabaseHandler(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +57,10 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks {
         setContentView(view);
 
         bottomNavigationView = binding.navigationView;
+        recordViewModel = new ViewModelProvider(this).get(RecordViewModel.class);
+
+        List<AudioRecord> recordList = db.getAllRecords();
+        recordViewModel.setRecordList(recordList);
 
         fragmentManager = getSupportFragmentManager();
         homeFragment = new HomeFragment();
@@ -94,13 +105,25 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks {
 
 
     private void replaceFragment(Fragment fragment) {
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.frameLayout, fragment);
-        fragmentTransaction.commit();
+        fragmentManager.beginTransaction().replace(R.id.frameLayout, fragment).commitNow();
     }
 
 
     @Override
     public void onMessageFromFragmentToMain(String sender, String message) {
+    }
+
+    private List<File> getAllRecordsInDirectory() {
+        ContextWrapper contextWrapper = new ContextWrapper(getApplicationContext());
+        File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
+
+        if (musicDirectory != null && musicDirectory.exists() && musicDirectory.isDirectory()) {
+            File[] files = musicDirectory.listFiles();
+            if (files != null) {
+                return Arrays.asList(files);
+            }
+        }
+
+        return new ArrayList<>();
     }
 }

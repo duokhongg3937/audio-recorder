@@ -24,10 +24,15 @@
         </FrameLayout>
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
+            style="@style/CustomTheme"
+            android:elevation="@dimen/cardview_compat_inset_shadow"
+            app:itemActiveIndicatorStyle="@color/primaryColor"
+            app:itemRippleColor="@color/primaryColor"
+            app:labelVisibilityMode="selected"
             android:id="@+id/navigationView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/rectangle_1"
+            android:background="@color/primaryColor"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

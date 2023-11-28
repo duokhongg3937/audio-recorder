@@ -11,6 +11,7 @@ public class RecordViewHolder extends RecyclerView.ViewHolder {
     public TextView txtDuration;
     public TextView txtLastModified;
     private RecordsAdapter.OnItemClickListener onItemClickListener;
+
     public RecordViewHolder(@NonNull View itemView, RecordsAdapter.OnItemClickListener onItemClickListener) {
         super(itemView);
 
@@ -18,7 +19,6 @@ public class RecordViewHolder extends RecyclerView.ViewHolder {
         txtDuration = itemView.findViewById(R.id.txtDuration);
         txtLastModified = itemView.findViewById(R.id.txtLastModified);
         this.onItemClickListener = onItemClickListener;
-
 
         itemView.setOnClickListener(new View.OnClickListener() {
             @Override

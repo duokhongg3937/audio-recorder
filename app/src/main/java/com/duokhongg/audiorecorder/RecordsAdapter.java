@@ -21,6 +21,11 @@ import java.util.List;
 
 public class RecordsAdapter extends RecyclerView.Adapter<RecordViewHolder> {
     private Context context;
+    public DatabaseHandler db;
+    public void setRecordList(List<AudioRecord> recordList) {
+        this.recordList = recordList;
+        notifyDataSetChanged();
+    }
     private List<AudioRecord> recordList;
     private OnItemClickListener onItemClickListener;
 
@@ -31,6 +36,7 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordViewHolder> {
     public RecordsAdapter(Context context, List<AudioRecord> recordList) {
         this.context = context;
         this.recordList = recordList;
+        db = new DatabaseHandler(context);
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
@@ -48,8 +54,8 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordViewHolder> {
     public void onBindViewHolder(@NonNull RecordViewHolder holder, int position) {
         AudioRecord data = recordList.get(position);
         holder.txtName.setText(data.fileName);
-        holder.txtDuration.setText(data.duration);
-        holder.txtLastModified.setText(data.timeStamp);
+        holder.txtDuration.setText(Helper.formatDuration(data.duration));
+        holder.txtLastModified.setText(Helper.formatLastModified(Long.parseLong(data.timeStamp)));
 
         ImageButton btnMore = holder.itemView.findViewById(R.id.btnMore);
 
@@ -65,6 +71,7 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordViewHolder> {
                             int position = holder.getAdapterPosition();
                             if (position != RecyclerView.NO_POSITION) {
                                 deleteRecord(recordList.get(position).fileName);
+                                db.deleteRecord(recordList.get(position));
                                 recordList.remove(position);
 
                                 notifyItemRemoved(position);
