@@ -10,6 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+
         <FrameLayout
             android:id="@+id/frameLayout"
             android:layout_width="match_parent"
@@ -19,23 +20,23 @@
             app:layout_constraintBottom_toTopOf="@+id/navigationView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent"/>
 
-        </FrameLayout>
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/navigationView"
             style="@style/CustomTheme"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/primaryColor"
             android:elevation="@dimen/cardview_compat_inset_shadow"
             app:itemActiveIndicatorStyle="@color/primaryColor"
             app:itemRippleColor="@color/primaryColor"
             app:labelVisibilityMode="selected"
-            android:id="@+id/navigationView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/primaryColor"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/frameLayout"
             app:menu="@menu/bottom_nav_menu" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

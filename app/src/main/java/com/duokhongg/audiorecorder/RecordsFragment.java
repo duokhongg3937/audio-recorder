@@ -58,11 +58,12 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
             @Override
             public void onItemClick(int pos) {
                 Intent intent = new Intent(requireContext(), DetailActivity.class);
-                intent.putExtra("file_path", recordViewModel.getRecordList().getValue().get(pos).filePath);
+                intent.putExtra("file_path", recordViewModel.getRecordList().getValue().get(pos).getFilePath());
                 startActivity(intent);
             }
         });
     }
+
 
 
     @Override

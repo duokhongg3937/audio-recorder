@@ -2,8 +2,6 @@ package com.duokhongg.audiorecorder;
 
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -13,29 +11,29 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
 import java.util.List;
 
-public class RecordsAdapter extends RecyclerView.Adapter<RecordViewHolder> {
+public class CategoryAdapter extends RecyclerView.Adapter<CategoryViewHolder> {
     private Context context;
     public DatabaseHandler db;
-    public void setRecordList(List<AudioRecord> recordList) {
-        this.recordList = recordList;
+    private List<Category> categoryList;
+    private OnItemClickListener onItemClickListener;
+
+    public void setCategoryList(List<Category> categoryList) {
+        this.categoryList = categoryList;
         notifyDataSetChanged();
     }
-    private List<AudioRecord> recordList;
-    private OnItemClickListener onItemClickListener;
 
     public interface OnItemClickListener {
         void onItemClick(int pos);
     }
 
-    public RecordsAdapter(Context context, List<AudioRecord> recordList) {
+    public CategoryAdapter(Context context, List<Category> categoryList) {
         this.context = context;
-        this.recordList = recordList;
+        this.categoryList = categoryList;
         db = new DatabaseHandler(context);
     }
 
@@ -45,20 +43,15 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordViewHolder> {
 
     @NonNull
     @Override
-    public RecordViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.custom_list_item, parent, false);
-        return new RecordViewHolder(view, onItemClickListener);
+    public CategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.custom_category_item, parent, false);
+        return new CategoryViewHolder(view, onItemClickListener);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecordViewHolder holder, int position) {
-        AudioRecord data = recordList.get(position);
-        holder.txtName.setText(data.getFileName());
-        holder.txtDuration.setText(Helper.formatDuration(data.getDuration()));
-        holder.txtLastModified.setText(Helper.formatLastModified(Long.parseLong(data.getTimeStamp())));
-        holder.txtCategory.setText(String.valueOf(data.getCategory().getCategoryName()));
-        holder.txtCategory.setTextColor(data.getCategory().getColor());
-
+    public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
+        Category data = categoryList.get(position);
+        holder.txtName.setText(data.getCategoryName());
         ImageButton btnMore = holder.itemView.findViewById(R.id.btnMore);
 
         btnMore.setOnClickListener(new View.OnClickListener() {
@@ -72,12 +65,11 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordViewHolder> {
                         if (item.getItemId() == R.id.itemDelete) {
                             int position = holder.getAdapterPosition();
                             if (position != RecyclerView.NO_POSITION) {
-                                deleteRecord(recordList.get(position).getFileName());
-                                db.deleteRecord(recordList.get(position));
-                                recordList.remove(position);
+                                db.deleteCategory(categoryList.get(position));
+                                categoryList.remove(position);
 
                                 notifyItemRemoved(position);
-                                notifyItemRangeChanged(position, recordList.size());
+                                notifyItemRangeChanged(position, categoryList.size());
                             }
                             return true;
                         }
@@ -101,14 +93,6 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordViewHolder> {
 
     @Override
     public int getItemCount() {
-        return recordList.size();
-    }
-
-
-    private void deleteRecord(String fileName) {
-        ContextWrapper contextWrapper = new ContextWrapper(context);
-        File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
-        File file = new File(musicDirectory, fileName);
-        file.delete();
+        return categoryList.size();
     }
 }

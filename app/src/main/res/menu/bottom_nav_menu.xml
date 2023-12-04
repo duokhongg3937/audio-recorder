@@ -10,12 +10,12 @@
         android:id="@+id/record"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:icon="@drawable/record"
+        android:icon="@drawable/ic_record"
         android:iconTint="@color/cardview_dark_background"
         android:title="Records" />
     <item
         android:id="@+id/category"
-        android:icon="@drawable/category"
+        android:icon="@drawable/ic_category"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:title="Category" />

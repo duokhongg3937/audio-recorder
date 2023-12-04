@@ -7,28 +7,23 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.content.ContextWrapper;
 import android.content.pm.PackageManager;
-import android.media.MediaMetadataRetriever;
-import android.media.MediaPlayer;
-import android.media.MediaRecorder;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import com.duokhongg.audiorecorder.databinding.ActivityMainBinding;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -46,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks {
     HomeFragment homeFragment;
     private ActivityMainBinding binding;
     private RecordViewModel recordViewModel;
+    private CategoryViewModel categoryViewModel;
     DatabaseHandler db = new DatabaseHandler(this);
 
     @Override
@@ -58,9 +54,13 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks {
 
         bottomNavigationView = binding.navigationView;
         recordViewModel = new ViewModelProvider(this).get(RecordViewModel.class);
+        categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
 
         List<AudioRecord> recordList = db.getAllRecords();
+        List<Category> categoryList = db.getAllCategory();
         recordViewModel.setRecordList(recordList);
+        categoryViewModel.setCategoryList(categoryList);
+
 
         fragmentManager = getSupportFragmentManager();
         homeFragment = new HomeFragment();
@@ -111,19 +111,5 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks {
 
     @Override
     public void onMessageFromFragmentToMain(String sender, String message) {
-    }
-
-    private List<File> getAllRecordsInDirectory() {
-        ContextWrapper contextWrapper = new ContextWrapper(getApplicationContext());
-        File musicDirectory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
-
-        if (musicDirectory != null && musicDirectory.exists() && musicDirectory.isDirectory()) {
-            File[] files = musicDirectory.listFiles();
-            if (files != null) {
-                return Arrays.asList(files);
-            }
-        }
-
-        return new ArrayList<>();
     }
 }

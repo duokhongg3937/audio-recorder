@@ -52,7 +52,7 @@
             android:id="@+id/btnPlayDetail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/button"
+            android:background="@drawable/bg_button_primary"
             android:text="Play"
             android:textColor="@color/white" />
 
@@ -61,7 +61,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="40dp"
-            android:background="@drawable/button"
+            android:background="@drawable/bg_button_primary"
             android:text="Pause"
             android:textColor="@color/white" />
     </LinearLayout>
