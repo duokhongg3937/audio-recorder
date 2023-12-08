@@ -1,9 +1,7 @@
-package com.duokhongg.audiorecorder;
+package com.duokhongg.audiorecorder.ui.categories;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
-import android.media.Image;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -12,6 +10,8 @@ import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.duokhongg.audiorecorder.R;
 
 import java.util.List;
 

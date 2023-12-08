@@ -1,11 +1,32 @@
-package com.duokhongg.audiorecorder;
+package com.duokhongg.audiorecorder.data.model;
 
-public class AudioRecord {
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.ForeignKey;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
+
+import java.io.Serializable;
+
+@Entity(tableName = "records")
+public class AudioRecord implements Serializable {
+    @PrimaryKey(autoGenerate = true)
     private int id;
-    private Category category;
+
+    @ForeignKey(entity = Category.class, parentColumns = "category_id", childColumns = "id")
+    @ColumnInfo(name = "category_id")
+    private int categoryId;
+
+    @ColumnInfo(name = "file_name")
     private String fileName;
+
+    @ColumnInfo(name = "file_path")
     private String filePath;
+
+    @ColumnInfo(name = "time_stamp")
     private String timeStamp;
+
+    @ColumnInfo(name = "duration")
     private String duration;
 
     public int getId() {
@@ -14,6 +35,14 @@ public class AudioRecord {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
     }
 
     public String getFileName() {
@@ -46,14 +75,6 @@ public class AudioRecord {
 
     public void setDuration(String duration) {
         this.duration = duration;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
     }
 
     public AudioRecord(String fileName, String filePath, String timeStamp, String duration) {

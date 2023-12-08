@@ -4,20 +4,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8EFE4"
-    tools:context=".HomeFragment">
+    android:background="@color/accentColor"
+    tools:context=".ui.home.HomeFragment">
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <com.google.android.material.textfield.TextInputLayout
+            app:hintTextColor="@color/mainColor"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="20dp"
             android:hint="Title"
-            app:boxStrokeColor="@color/primaryColor"
+            app:boxStrokeColor="@color/mainColor"
             app:endIconMode="clear_text">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -31,17 +32,21 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/txtInputLayoutCategory"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            app:hintTextColor="@color/mainColor"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
             android:layout_marginTop="100dp"
             android:hint="Category"
+            app:endIconTint="@color/grayDark"
             app:boxCollapsedPaddingTop="100dp"
-            app:boxStrokeColor="@color/primaryColor">
+            app:boxBackgroundColor="@color/accentColor"
+            app:boxStrokeColor="@color/mainColor">
 
-            <AutoCompleteTextView
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
                 android:id="@+id/txtCategory"
+                app:dropDownBackgroundTint="@color/mainColor"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:inputType="none" />
@@ -53,13 +58,13 @@
             android:layout_marginTop="450dp"
             android:gravity="center">
 
-            <androidx.appcompat.widget.AppCompatButton
+            <Button
                 android:id="@+id/btnSave"
+                style="@style/Widget.Material3.Button.ElevatedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/bg_button_primary"
+                android:padding="4dp"
+                app:backgroundTint="@color/secondaryColor"
                 android:text="Save"
                 android:textColor="@color/white" />
         </LinearLayout>
@@ -76,6 +81,7 @@
             android:gravity="center"
             android:padding="50dp"
             android:text="Record"
+            android:textStyle="bold"
             android:textAllCaps="true"
             android:textColor="@color/white" />
 

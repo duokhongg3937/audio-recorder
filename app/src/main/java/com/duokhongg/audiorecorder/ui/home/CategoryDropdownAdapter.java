@@ -1,4 +1,4 @@
-package com.duokhongg.audiorecorder;
+package com.duokhongg.audiorecorder.ui.home;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -9,7 +9,8 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
+import com.duokhongg.audiorecorder.R;
+import com.duokhongg.audiorecorder.data.model.Category;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,9 @@ public class CategoryDropdownAdapter extends BaseAdapter implements Filterable {
 
     @Override
     public int getCount() {
+        if (filteredList == null) {
+            return 0;
+        }
         return filteredList.size();
     }
 

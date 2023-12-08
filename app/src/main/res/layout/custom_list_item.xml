@@ -82,4 +82,6 @@
         android:layout_weight="0"
         android:background="@drawable/button_background"
         android:src="@drawable/ic_dots" />
+
 </LinearLayout>
+

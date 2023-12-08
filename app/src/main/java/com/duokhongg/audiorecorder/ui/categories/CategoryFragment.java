@@ -1,15 +1,12 @@
-package com.duokhongg.audiorecorder;
+package com.duokhongg.audiorecorder.ui.categories;
 
 import android.app.Dialog;
-import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -24,11 +21,11 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.PopupWindow;
 
+import com.duokhongg.audiorecorder.R;
+import com.duokhongg.audiorecorder.data.AppDatabase;
+import com.duokhongg.audiorecorder.data.model.Category;
 import com.duokhongg.audiorecorder.databinding.FragmentCategoryBinding;
-import com.google.android.material.dialog.MaterialDialogs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,8 +34,7 @@ public class CategoryFragment extends Fragment {
 
     private FragmentCategoryBinding categoryBinding;
     private CategoryViewModel categoryViewModel;
-    CategoryAdapter adapter;
-    DatabaseHandler db;
+    CategoryRVAdapter adapter;
     int pickedColor = 0;
 
 
@@ -50,31 +46,20 @@ public class CategoryFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        adapter = new CategoryRVAdapter();
 
-        db = new DatabaseHandler(requireContext());
-
-        adapter = new CategoryAdapter(requireContext(), new ArrayList<>());
         categoryBinding.listCategory.setLayoutManager(new LinearLayoutManager(getActivity()));
         categoryBinding.listCategory.setAdapter(adapter);
 
         categoryViewModel = new ViewModelProvider(requireActivity()).get(CategoryViewModel.class);
-        categoryViewModel.getCategoryList().observe(getViewLifecycleOwner(), new Observer<List<Category>>() {
+        categoryViewModel.getAllCategories().observe(getViewLifecycleOwner(), new Observer<List<Category>>() {
             @Override
             public void onChanged(List<Category> categoryList) {
-                adapter.setCategoryList(categoryList);
+                adapter.submitList(categoryList);
             }
         });
 
-        adapter.setOnItemClickListener(new CategoryAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(int pos) {
-                Intent intent = new Intent(requireContext(), DetailActivity.class);
-                intent.putExtra("file_path", categoryViewModel.getCategoryList().getValue().get(pos).getCategoryName());
-                startActivity(intent);
-            }
-        });
-
-        categoryBinding.imgBtnAdd.setOnClickListener(new View.OnClickListener() {
+        categoryBinding.fabAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 openCategoryDialog(Gravity.CENTER);
@@ -141,17 +126,10 @@ public class CategoryFragment extends Fragment {
             public void onClick(View v) {
                 String name = edtCategoryName.getText().toString();
                 Category category = new Category(name, pickedColor);
-                int id = db.addCategory(category);
-                category.setId(id);
-
-                categoryViewModel.getCategoryList().getValue().add(category);
-                adapter.notifyDataSetChanged();
-
+                categoryViewModel.insert(category);
                 dialog.dismiss();
             }
         });
-
-
 
         dialog.show();
     }

@@ -1,9 +1,6 @@
-package com.duokhongg.audiorecorder;
+package com.duokhongg.audiorecorder.ui.records;
 
-import android.content.ContextWrapper;
 import android.content.Intent;
-import android.media.MediaMetadataRetriever;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -14,22 +11,22 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
+import com.duokhongg.audiorecorder.RecordDetailActivity;
+import com.duokhongg.audiorecorder.R;
+import com.duokhongg.audiorecorder.data.model.RecordWithCategory;
+import com.duokhongg.audiorecorder.utils.FragmentCallbacks;
+
 import java.util.List;
 
 public class RecordsFragment extends Fragment implements FragmentCallbacks {
 
     RecyclerView listRecords;
-    private RecordViewModel recordViewModel;
-    RecordsAdapter adapter;
-
+    private AudioRecordViewModel recordViewModel;
+    RecordWithCategoryRVAdapter adapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -41,30 +38,31 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
         super.onViewCreated(view, savedInstanceState);
 
         listRecords = requireView().findViewById(R.id.listRecords);
+        adapter = new RecordWithCategoryRVAdapter();
 
-        adapter = new RecordsAdapter(requireContext(), new ArrayList<>());
         listRecords.setLayoutManager(new LinearLayoutManager(getActivity()));
         listRecords.setAdapter(adapter);
 
-        recordViewModel = new ViewModelProvider(requireActivity()).get(RecordViewModel.class);
-        recordViewModel.getRecordList().observe(getViewLifecycleOwner(), new Observer<List<AudioRecord>>() {
+        recordViewModel = new ViewModelProvider(requireActivity()).get(AudioRecordViewModel.class);
+        recordViewModel.getAllRecordsWithCategory().observe(getViewLifecycleOwner(), new Observer<List<RecordWithCategory>>() {
             @Override
-            public void onChanged(List<AudioRecord> audioRecords) {
-                adapter.setRecordList(audioRecords);
+            public void onChanged(List<RecordWithCategory> audioRecords) {
+                adapter.submitList(audioRecords);
             }
         });
 
-        adapter.setOnItemClickListener(new RecordsAdapter.OnItemClickListener() {
+        adapter.setOnItemClickListener(new RecordWithCategoryRVAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(int pos) {
-                Intent intent = new Intent(requireContext(), DetailActivity.class);
-                intent.putExtra("file_path", recordViewModel.getRecordList().getValue().get(pos).getFilePath());
+            public void onItemClick(RecordWithCategory record) {
+                Intent intent = new Intent(requireContext(), RecordDetailActivity.class);
+                intent.putExtra("file_path", record.getFilePath());
+                intent.putExtra("file_name", record.getFileName());
+                intent.putExtra("record", record);
                 startActivity(intent);
             }
+
         });
     }
-
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

@@ -2,8 +2,8 @@
 <resources>
     <style name="CustomTheme" parent="Theme.MaterialComponents">
         <item name="bottomNavigationStyle">@style/Widget.MaterialComponents.BottomNavigationView.Colored</item>
-        <item name="colorPrimary">@color/primaryColor</item>
-        <item name="colorOnPrimary">@color/primaryColor</item>
+        <item name="colorPrimary">@color/mainColor</item>
+        <item name="colorOnPrimary">@color/mainColor</item>
     </style>
 
 

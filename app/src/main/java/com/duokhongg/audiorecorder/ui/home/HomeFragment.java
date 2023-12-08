@@ -1,4 +1,4 @@
-package com.duokhongg.audiorecorder;
+package com.duokhongg.audiorecorder.ui.home;
 
 import android.content.ContextWrapper;
 import android.media.MediaMetadataRetriever;
@@ -9,26 +9,32 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Environment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.duokhongg.audiorecorder.R;
+import com.duokhongg.audiorecorder.data.model.AudioRecord;
+import com.duokhongg.audiorecorder.data.model.Category;
 import com.duokhongg.audiorecorder.databinding.FragmentHomeBinding;
+import com.duokhongg.audiorecorder.ui.categories.CategoryViewModel;
+import com.duokhongg.audiorecorder.ui.records.AudioRecordViewModel;
+import com.duokhongg.audiorecorder.utils.FragmentCallbacks;
+import com.duokhongg.audiorecorder.utils.Helper;
+import com.duokhongg.audiorecorder.utils.Timer;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,10 +55,10 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
     String currentRecordingFilePath;
     String currentFileName;
     BottomNavigationView bottomNavigationView;
-    RecordViewModel recordViewModel;
-    DatabaseHandler db;
+    AudioRecordViewModel recordViewModel;
     TextInputEditText edtFileName;
     int currentCategoryId = 0;
+    CategoryViewModel categoryViewModel;
 
     AutoCompleteTextView txtCategory;
     public HomeFragment() {}
@@ -71,10 +77,9 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
         bottomSheetBehavior.setPeekHeight(0);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
-        homeBinding.btnSave.setBackgroundResource(R.drawable.bg_button_primary);
-        recordViewModel = new ViewModelProvider(requireActivity()).get(RecordViewModel.class);
+        recordViewModel = new ViewModelProvider(requireActivity()).get(AudioRecordViewModel.class);
+        categoryViewModel = new ViewModelProvider(requireActivity()).get(CategoryViewModel.class);
 
-        db = new DatabaseHandler(requireContext());
         homeBinding.btnRecord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -163,12 +168,9 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
                 bottomNavigationView.setVisibility(View.VISIBLE);
 
                 File file = new File(currentRecordingFilePath);
-                AudioRecord record = File2AudioRecord(file);
-                record.getCategory().setId(currentCategoryId);
-                int id = db.addRecord(record);
-                record.setId(id);
-
-                recordViewModel.getRecordList().getValue().add(record);
+                AudioRecord record = Helper.File2AudioRecord(file);
+                record.setCategoryId(currentCategoryId);
+                recordViewModel.insert(record);
             }
         });
     }
@@ -181,7 +183,6 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
         timer.setOnTimerCreateListener(this);
         homeBinding = FragmentHomeBinding.inflate(inflater, container, false);
 
-        // Inflate the layout for this fragment
         return homeBinding.getRoot();
     }
 
@@ -205,19 +206,19 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
         super.onResume();
         homeBinding.txtRecordingTime.setText(recordingTime);
 
-        List<Category> categoryList = db.getAllCategory();
-        String[] categories = categoryList.stream()
-                .map(Category::getCategoryName)
-                .toArray(String[]::new);
-
-        CategoryDropdownAdapter categoryAdapter = new CategoryDropdownAdapter(categoryList, requireContext());
-        txtCategory = requireView().findViewById(R.id.txtCategory);
-        txtCategory.setAdapter(categoryAdapter);
-
-        homeBinding.txtCategory.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        categoryViewModel.getAllCategories().observe(getViewLifecycleOwner(), new Observer<List<Category>>() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                currentCategoryId = categoryAdapter.getItem(position).getId();
+            public void onChanged(List<Category> categoryList) {
+                CategoryDropdownAdapter categoryAdapter = new CategoryDropdownAdapter(categoryList, requireContext());
+                txtCategory = requireView().findViewById(R.id.txtCategory);
+                txtCategory.setAdapter(categoryAdapter);
+
+                homeBinding.txtCategory.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        currentCategoryId = categoryAdapter.getItem(position).getId();
+                    }
+                });
             }
         });
     }
@@ -277,18 +278,5 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
         homeBinding.btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.mic), null, null);
 
         timer.stop();
-    }
-
-    private AudioRecord File2AudioRecord(File file) {
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-
-        String name = file.getName();
-        long lastModified = file.lastModified();
-        String path = file.getPath();
-
-        retriever.setDataSource(path);
-        String duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-
-        return new AudioRecord(name, path, String.valueOf(lastModified), duration);
     }
 }

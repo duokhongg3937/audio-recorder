@@ -1,11 +1,11 @@
-package com.duokhongg.audiorecorder;
+package com.duokhongg.audiorecorder.utils;
 
 
 import android.os.Handler;
 import android.os.Looper;
 
 public class Timer {
-    interface OnTimerClickListener {
+    public interface OnTimerClickListener {
         void onTimerTick(String value);
     }
 
@@ -16,7 +16,7 @@ public class Timer {
     private long delay = 100L;
     private OnTimerClickListener onTimerClickListener;
 
-    Timer() {
+    public Timer() {
         runnable = new Runnable() {
             @Override
             public void run() {
