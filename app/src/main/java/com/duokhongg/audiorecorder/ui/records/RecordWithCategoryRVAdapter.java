@@ -25,6 +25,8 @@ import com.duokhongg.audiorecorder.data.repository.CategoryRepository;
 import com.duokhongg.audiorecorder.ui.categories.CategoryViewModel;
 import com.duokhongg.audiorecorder.utils.Helper;
 
+import java.util.Objects;
+
 public class RecordWithCategoryRVAdapter extends ListAdapter<RecordWithCategory, RecordWithCategoryRVAdapter.ViewHolder> {
 
     private OnItemClickListener listener;
@@ -36,17 +38,18 @@ public class RecordWithCategoryRVAdapter extends ListAdapter<RecordWithCategory,
     private static final DiffUtil.ItemCallback<RecordWithCategory> DIFF_CALLBACK =  new DiffUtil.ItemCallback<RecordWithCategory>() {
         @Override
         public boolean areItemsTheSame(@NonNull RecordWithCategory oldItem, @NonNull RecordWithCategory newItem) {
-            return oldItem.getId() == newItem.getId();
+            return Objects.equals(oldItem.getId(), newItem.getId());
         }
 
         @Override
         public boolean areContentsTheSame(@NonNull RecordWithCategory oldItem, @NonNull RecordWithCategory newItem) {
-            return oldItem.getCategoryColor() == newItem.getCategoryColor() &&
-                    oldItem.getFileName().equals(newItem.getFileName()) &&
-                    oldItem.getFilePath().equals(newItem.getFilePath()) &&
-                    oldItem.getDuration().equals(newItem.getDuration()) &&
-                    oldItem.getCategoryName().equals(newItem.getCategoryName()) &&
-                    oldItem.getTimeStamp().equals(newItem.getTimeStamp());
+            return Objects.equals(oldItem, newItem);
+//                    oldItem.getCategoryColor() == newItem.getCategoryColor() &&
+//                    oldItem.getFileName().equals(newItem.getFileName()) &&
+//                    oldItem.getFilePath().equals(newItem.getFilePath()) &&
+//                    oldItem.getDuration().equals(newItem.getDuration()) &&
+//                    oldItem.getCategoryName().equals(newItem.getCategoryName()) &&
+//                    oldItem.getTimeStamp().equals(newItem.getTimeStamp());
         }
     };
 

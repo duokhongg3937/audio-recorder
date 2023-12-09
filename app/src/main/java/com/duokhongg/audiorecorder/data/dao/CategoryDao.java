@@ -5,6 +5,7 @@ import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import com.duokhongg.audiorecorder.data.model.Category;
 
@@ -23,4 +24,7 @@ public interface CategoryDao {
 
     @Delete
     void deleteCategory(Category category);
+
+    @Update
+    void updateCategory(Category category);
 }

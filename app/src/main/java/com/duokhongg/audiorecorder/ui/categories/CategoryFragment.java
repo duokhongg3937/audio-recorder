@@ -7,6 +7,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -23,7 +24,6 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.duokhongg.audiorecorder.R;
-import com.duokhongg.audiorecorder.data.AppDatabase;
 import com.duokhongg.audiorecorder.data.model.Category;
 import com.duokhongg.audiorecorder.databinding.FragmentCategoryBinding;
 
@@ -35,6 +35,7 @@ public class CategoryFragment extends Fragment {
     private FragmentCategoryBinding categoryBinding;
     private CategoryViewModel categoryViewModel;
     CategoryRVAdapter adapter;
+    SearchView searchView;
     int pickedColor = 0;
 
 
@@ -47,6 +48,7 @@ public class CategoryFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         adapter = new CategoryRVAdapter();
+        searchView = requireView().findViewById(R.id.searchViewCategory);
 
         categoryBinding.listCategory.setLayoutManager(new LinearLayoutManager(getActivity()));
         categoryBinding.listCategory.setAdapter(adapter);
@@ -63,6 +65,20 @@ public class CategoryFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 openCategoryDialog(Gravity.CENTER);
+            }
+        });
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                searchCategories(query);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                searchCategories(newText);
+                return false;
             }
         });
     }
@@ -138,5 +154,24 @@ public class CategoryFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         categoryBinding = null;
+    }
+
+    private void searchCategories(String query) {
+        if (query.isEmpty()) {
+            categoryViewModel.getAllCategories().observe(getViewLifecycleOwner(), new Observer<List<Category>>() {
+                @Override
+                public void onChanged(List<Category> categories) {
+                    adapter.submitList(categories);
+                }
+            });
+        } else {
+            List<Category> filteredCategories = new ArrayList<>();
+            for (Category category : categoryViewModel.getAllCategories().getValue()) {
+                if (category.getCategoryName().toLowerCase().contains(query.toLowerCase()))  {
+                    filteredCategories.add(category);
+                }
+            }
+            adapter.submitList(filteredCategories);
+        }
     }
 }

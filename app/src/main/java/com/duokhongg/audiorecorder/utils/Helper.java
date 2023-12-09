@@ -10,10 +10,13 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.duokhongg.audiorecorder.R;
 import com.duokhongg.audiorecorder.data.model.AudioRecord;
+import com.duokhongg.audiorecorder.data.model.Category;
 import com.duokhongg.audiorecorder.data.model.RecordWithCategory;
+import com.duokhongg.audiorecorder.ui.categories.CategoryViewModel;
 import com.duokhongg.audiorecorder.ui.records.AudioRecordViewModel;
 
 import java.io.File;
@@ -136,4 +139,50 @@ public class Helper {
 
         dialog.show();
     }
+
+
+    public static void openEditCategoryDialog(Context context, Category category, CategoryViewModel categoryViewModel, int gravity) {
+        Dialog dialog = new Dialog(context);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.popup_category);
+
+        Window window = dialog.getWindow();
+        if (window == null) return;
+
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        WindowManager.LayoutParams windowAttr = window.getAttributes();
+        windowAttr.gravity = gravity;
+        window.setAttributes(windowAttr);
+
+        dialog.setCancelable(true);
+
+        Button btnClose = dialog.findViewById(R.id.btnCloseDialog);
+        Button btnSave = dialog.findViewById(R.id.btnSaveDialog);
+        EditText edtCategoryName = dialog.findViewById(R.id.edtCategoryName);
+        TextView txtPopupCategoryTitle = dialog.findViewById(R.id.txtPopupCategoryTitle);
+
+        edtCategoryName.setText(category.getCategoryName());
+        txtPopupCategoryTitle.setText("EDIT CATEGORY");
+        btnClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        btnSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = edtCategoryName.getText().toString();
+                category.setCategoryName(name);
+                categoryViewModel.update(category);
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+    }
 }
+

@@ -29,6 +29,10 @@ public class CategoryRepository {
         new DeleteCategoryAsyncTask(categoryDao).execute(category);
     }
 
+    public void update(Category category) {
+        new UpdateCategoryAsyncTask(categoryDao).execute(category);
+    }
+
     public LiveData<List<Category>> getAllCategories() {
         return allCategories;
     }
@@ -61,6 +65,20 @@ public class CategoryRepository {
         @Override
         protected Void doInBackground(Category... model) {
             categoryDao.deleteCategory(model[0]);
+            return null;
+        }
+    }
+
+    private static class UpdateCategoryAsyncTask extends AsyncTask<Category, Void, Void> {
+        private CategoryDao categoryDao;
+
+        private UpdateCategoryAsyncTask(CategoryDao categoryDao) {
+            this.categoryDao = categoryDao;
+        }
+
+        @Override
+        protected Void doInBackground(Category... model) {
+            categoryDao.updateCategory(model[0]);
             return null;
         }
     }
