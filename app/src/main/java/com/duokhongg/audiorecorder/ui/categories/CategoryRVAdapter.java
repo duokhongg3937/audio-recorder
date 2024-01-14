@@ -65,14 +65,14 @@ public class CategoryRVAdapter extends ListAdapter<Category, CategoryRVAdapter.V
                     public boolean onMenuItemClick(MenuItem item) {
                         if (item.getItemId() == R.id.itemDelete) {
                             int position = holder.getAdapterPosition();
-                            if (position != RecyclerView.NO_POSITION) {
+                            if (position != RecyclerView.NO_POSITION && position != 0) {
                                 CategoryViewModel categoryViewModel = new ViewModelProvider((ViewModelStoreOwner) holder.itemView.getContext()).get(CategoryViewModel.class);
                                 categoryViewModel.delete(getItem(position));
                             }
                             return true;
                         } else if (item.getItemId() == R.id.itemEdit) {
                             int position = holder.getAdapterPosition();
-                            if (position != RecyclerView.NO_POSITION) {
+                            if (position != RecyclerView.NO_POSITION && position != 0) {
                                 CategoryViewModel categoryViewModel = new ViewModelProvider((ViewModelStoreOwner) holder.itemView.getContext()).get(CategoryViewModel.class);
                                 Helper.openEditCategoryDialog(holder.itemView.getContext(), getItem(position), categoryViewModel, Gravity.CENTER);
                             }

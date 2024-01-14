@@ -26,6 +26,11 @@ public class AudioRecord implements Serializable {
     @ColumnInfo(name = "time_stamp")
     private String timeStamp;
 
+    @ColumnInfo(name = "time_delete")
+    public String timeDelete;
+
+    @ColumnInfo(name = "old_category")
+    public int oldCategory;
     @ColumnInfo(name = "duration")
     private String duration;
 
@@ -67,6 +72,22 @@ public class AudioRecord implements Serializable {
 
     public void setTimeStamp(String timeStamp) {
         this.timeStamp = timeStamp;
+    }
+
+    public String getTimeDelete() {
+        return timeDelete;
+    }
+
+    public void setTimeDelete(String timeDelete) {
+        this.timeStamp = timeDelete;
+    }
+
+    public int getOldCategory() {
+        return oldCategory;
+    }
+
+    public void setOldCategory(int oldCategory) {
+        this.oldCategory = oldCategory;
     }
 
     public String getDuration() {

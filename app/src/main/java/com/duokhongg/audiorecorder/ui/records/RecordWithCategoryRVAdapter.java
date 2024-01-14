@@ -25,6 +25,10 @@ import com.duokhongg.audiorecorder.data.repository.CategoryRepository;
 import com.duokhongg.audiorecorder.ui.categories.CategoryViewModel;
 import com.duokhongg.audiorecorder.utils.Helper;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 
 public class RecordWithCategoryRVAdapter extends ListAdapter<RecordWithCategory, RecordWithCategoryRVAdapter.ViewHolder> {
@@ -88,7 +92,11 @@ public class RecordWithCategoryRVAdapter extends ListAdapter<RecordWithCategory,
                             int position = holder.getAdapterPosition();
                             if (position != RecyclerView.NO_POSITION) {
                                 AudioRecordViewModel recordViewModel = new ViewModelProvider((ViewModelStoreOwner) holder.itemView.getContext()).get(AudioRecordViewModel.class);
-                                recordViewModel.delete(Helper.RecordWithCategory2Record(getItem(position)));
+                                record.setTimeDelete(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
+                                record.setOldCategory(record.getCategoryId());
+                                record.setCategoryId(0);
+                                recordViewModel.update(Helper.RecordWithCategory2Record(record));
+                                // recordViewModel.delete(Helper.RecordWithCategory2Record(getItem(position)));
                             }
                             return true;
                         } else if (item.getItemId() == R.id.itemEdit) {

@@ -31,9 +31,15 @@ import android.widget.TextView;
 
 import com.duokhongg.audiorecorder.data.model.RecordWithCategory;
 import com.duokhongg.audiorecorder.databinding.ActivityRecordDetailBinding;
+import com.duokhongg.audiorecorder.ui.categories.CategoryViewModel;
 import com.duokhongg.audiorecorder.ui.records.AudioRecordViewModel;
 import com.duokhongg.audiorecorder.utils.Helper;
 import com.google.android.material.slider.Slider;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Objects;
 
 public class RecordDetailActivity extends AppCompatActivity {
     ActivityRecordDetailBinding binding;
@@ -196,7 +202,11 @@ public class RecordDetailActivity extends AppCompatActivity {
         binding.btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                recordViewModel.delete(Helper.RecordWithCategory2Record(record));
+                record.setTimeDelete(new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault()).format(new Date()));
+                record.setOldCategory(record.getCategoryId());
+                record.setCategoryId(0);
+                recordViewModel.update(Helper.RecordWithCategory2Record(record));
+                //recordViewModel.delete(Helper.RecordWithCategory2Record(record));
             }
         });
 

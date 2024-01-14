@@ -45,6 +45,9 @@ public class AudioRecordRepository {
         return allRecordsWithCategory;
     }
 
+    public void deleteAllExpiredRecord() {
+        audioRecordDao.deleteAllExpiredRecord();
+    }
 
     private static class InsertRecordAsyncTask extends AsyncTask<AudioRecord, Void, Void> {
         private AudioRecordDao recordDao;

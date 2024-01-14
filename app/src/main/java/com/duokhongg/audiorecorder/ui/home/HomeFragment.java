@@ -209,6 +209,7 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
         categoryViewModel.getAllCategories().observe(getViewLifecycleOwner(), new Observer<List<Category>>() {
             @Override
             public void onChanged(List<Category> categoryList) {
+
                 CategoryDropdownAdapter categoryAdapter = new CategoryDropdownAdapter(categoryList, requireContext());
                 txtCategory = requireView().findViewById(R.id.txtCategory);
                 txtCategory.setAdapter(categoryAdapter);
