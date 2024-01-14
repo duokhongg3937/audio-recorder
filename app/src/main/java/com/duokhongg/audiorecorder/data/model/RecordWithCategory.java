@@ -65,7 +65,7 @@ public class RecordWithCategory implements Serializable {
     }
 
     public void setTimeDelete(String timeDelete) {
-        this.timeStamp = timeDelete;
+        this.timeDelete = timeDelete;
     }
 
     public String getDuration() {

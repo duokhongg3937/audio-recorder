@@ -79,7 +79,7 @@ public class AudioRecord implements Serializable {
     }
 
     public void setTimeDelete(String timeDelete) {
-        this.timeStamp = timeDelete;
+        this.timeDelete = timeDelete;
     }
 
     public int getOldCategory() {
