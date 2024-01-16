@@ -81,6 +81,8 @@ public class Helper {
         rec.setFilePath(record.getFilePath());
         rec.setTimeStamp(record.getTimeStamp());
         rec.setDuration(record.getDuration());
+        rec.setOldCategory(record.getOldCategory());
+        rec.setTimeDelete(record.getTimeDelete());
 
         return rec;
 

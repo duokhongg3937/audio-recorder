@@ -90,7 +90,7 @@ public class RecordWithCategoryRVAdapter extends ListAdapter<RecordWithCategory,
                     public boolean onMenuItemClick(MenuItem item) {
                         if (item.getItemId() == R.id.itemDelete) {
                             int position = holder.getAdapterPosition();
-                            if (position != RecyclerView.NO_POSITION) {
+                            if (position != RecyclerView.NO_POSITION && record.getCategoryId() != 1) {
                                 AudioRecordViewModel recordViewModel = new ViewModelProvider((ViewModelStoreOwner) holder.itemView.getContext()).get(AudioRecordViewModel.class);
                                 record.setTimeDelete(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
                                 record.setOldCategory(record.getCategoryId());
@@ -99,10 +99,15 @@ public class RecordWithCategoryRVAdapter extends ListAdapter<RecordWithCategory,
 
                                 // recordViewModel.delete(Helper.RecordWithCategory2Record(getItem(position)));
                             }
+                            else if (record.getCategoryId() == 1)
+                            {
+                                AudioRecordViewModel recordViewModel = new ViewModelProvider((ViewModelStoreOwner) holder.itemView.getContext()).get(AudioRecordViewModel.class);
+                                recordViewModel.delete(Helper.RecordWithCategory2Record(getItem(position)));
+                            }
                             return true;
                         } else if (item.getItemId() == R.id.itemEdit) {
                             int position = holder.getAdapterPosition();
-                            if (position != RecyclerView.NO_POSITION) {
+                            if (position != RecyclerView.NO_POSITION && record.getCategoryId() != 1) {
                                 AudioRecordViewModel recordViewModel = new ViewModelProvider((ViewModelStoreOwner) holder.itemView.getContext()).get(AudioRecordViewModel.class);
                                 Helper.openEditRecordDialog(holder.itemView.getContext(), getItem(position), recordViewModel, Gravity.CENTER);
                             }

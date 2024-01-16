@@ -63,7 +63,7 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
 
         recordViewModel = new ViewModelProvider(requireActivity()).get(AudioRecordViewModel.class);
 
-        //recordViewModel.deleteAllExpiredRecord();
+        // recordViewModel.deleteAllExpiredRecord();
 
         recordViewModel.getAllRecordsWithCategory().observe(getViewLifecycleOwner(), new Observer<List<RecordWithCategory>>() {
             @Override
@@ -76,11 +76,20 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
             @Override
             public void onItemClick(RecordWithCategory record) {
 
-                Intent intent = new Intent(requireContext(), RecordDetailActivity.class);
-                intent.putExtra("file_path", record.getFilePath());
-                intent.putExtra("file_name", record.getFileName());
-                intent.putExtra("record", record);
-                startActivity(intent);
+                if (record.getCategoryId() == 1)
+                {
+                    record.setCategoryId(record.getOldCategory());
+                    record.setTimeDelete(null);
+                    recordViewModel.update(Helper.RecordWithCategory2Record(record));
+                }
+                else
+                {
+                    Intent intent = new Intent(requireContext(), RecordDetailActivity.class);
+                    intent.putExtra("file_path", record.getFilePath());
+                    intent.putExtra("file_name", record.getFileName());
+                    intent.putExtra("record", record);
+                    startActivity(intent);
+                }
             }
 
         });
