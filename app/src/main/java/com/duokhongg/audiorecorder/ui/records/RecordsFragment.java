@@ -45,11 +45,10 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        listRecords = requireView().findViewById(R.id.listRecords);
-        adapter = new RecordWithCategoryRVAdapter();
         searchView = requireView().findViewById(R.id.searchViewRecord);
+        adapter = new RecordWithCategoryRVAdapter();
 
-
+        listRecords = requireView().findViewById(R.id.listRecords);
         listRecords.setLayoutManager(new LinearLayoutManager(getActivity()));
         listRecords.setAdapter(adapter);
 
@@ -60,6 +59,8 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
                 adapter.submitList(audioRecords);
             }
         });
+
+        int n = recordViewModel.getAllRecordsWithCategory().getValue().size();
 
         adapter.setOnItemClickListener(new RecordWithCategoryRVAdapter.OnItemClickListener() {
             @Override
@@ -106,7 +107,8 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
 
     private void searchRecords(String query) {
         if (query.isEmpty()) {
-            recordViewModel.getAllRecordsWithCategory().observe(getViewLifecycleOwner(), new Observer<List<RecordWithCategory>>() {
+            recordViewModel.getAllRecordsWithCategory().observe(getViewLifecycleOwner(),
+                    new Observer<List<RecordWithCategory>>() {
                 @Override
                 public void onChanged(List<RecordWithCategory> recordWithCategories) {
                     adapter.submitList(recordWithCategories);

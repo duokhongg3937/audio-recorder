@@ -35,18 +35,17 @@ import com.duokhongg.audiorecorder.ui.records.AudioRecordViewModel;
 import com.duokhongg.audiorecorder.utils.Helper;
 import com.google.android.material.slider.Slider;
 
-public class RecordDetailActivity extends AppCompatActivity {
-    ActivityRecordDetailBinding binding;
-    ExoPlayer exoPlayer;
-    String filePath;
-    AudioManager audioManager;
-    Handler handler = new Handler();
-    final int delayMillis = 10;
-    AudioRecordViewModel recordViewModel;
-    RecordWithCategory record;
-    boolean isPlaying = false, isStarting = false, isBound = false;
+public class RecordDetailActivity extends AppCompatActivity implements AudioManager.OnAudioFocusChangeListener{
+    private ActivityRecordDetailBinding binding;
+    private ExoPlayer exoPlayer;
+    private AudioManager audioManager;
+    private Handler handler = new Handler();
+    private final int delayMillis = 10;
+    private AudioRecordViewModel recordViewModel;
+    private RecordWithCategory record;
+    private boolean isPlaying = false, isStarting = false, isBound = false;
 
-    ServiceConnection playerServiceConnection = new ServiceConnection() {
+    private ServiceConnection playerServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             AudioPlayerService.ServiceBinder binder = (AudioPlayerService.ServiceBinder) service;
@@ -56,9 +55,7 @@ public class RecordDetailActivity extends AppCompatActivity {
                 @Override
                 public void onPlaybackStateChanged(int playbackState) {
                     if (playbackState == Player.STATE_ENDED) {
-                        binding.btnToggle.setImageResource(R.drawable.ic_play_big);
-                        isPlaying = false;
-                        isStarting = false;
+                        updateState(R.drawable.ic_play_big, false, false);
                     }
                 }
             });
@@ -69,6 +66,15 @@ public class RecordDetailActivity extends AppCompatActivity {
 
         }
     };
+
+    @Override
+    public void onAudioFocusChange(int focusChange) {
+        switch (focusChange) {
+            case AudioManager.AUDIOFOCUS_GAIN:
+                updateState(R.drawable.ic_pause_big, true, true);
+                break;
+        }
+    }
 
 
     @Override
@@ -83,129 +89,21 @@ public class RecordDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityRecordDetailBinding.inflate(getLayoutInflater());
-        View view = binding.getRoot();
-        setContentView(view);
 
+        // view binding
+        binding = ActivityRecordDetailBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        // bind notification service
         startService(new Intent(getApplicationContext(), AudioPlayerService.class));
         doBindService();
 
-        filePath = getIntent().getStringExtra("file_path");
-        String fileName = getIntent().getStringExtra("file_name");
+        // get record and recordViewModel
         record = (RecordWithCategory) getIntent().getSerializableExtra("record");
-
         recordViewModel = new ViewModelProvider(this).get(AudioRecordViewModel.class);
 
-        audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-
-        binding.sliderVolume.setValueTo(maxVolume);
-        binding.sliderVolume.setValue(currentVolume);
-
-        if (currentVolume == 0) {
-            binding.btnVolume.setImageResource(R.drawable.ic_volume_off);
-        } else {
-            binding.btnVolume.setImageResource(R.drawable.ic_volume_on);
-        }
-
-
-        binding.sliderVolume.addOnChangeListener(new Slider.OnChangeListener() {
-            @Override
-            public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, (int) value, 0);
-                if (audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) == 0) {
-                    binding.btnVolume.setImageResource(R.drawable.ic_volume_off);
-                } else {
-                    binding.btnVolume.setImageResource(R.drawable.ic_volume_on);
-                }
-            }
-        });
-
-
-        setSupportActionBar(binding.toolbar);
-
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setTitle(fileName);
-        }
-
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = getWindow();
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(parseColor("#C67C4E"));
-        }
-
-        binding.seekbar.setMax((int) Integer.parseInt(record.getDuration()));
-        binding.txtEndTime.setText(Helper.formatDuration(record.getDuration()));
-
-
-        binding.seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) {
-                    exoPlayer.seekTo(progress);
-                }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                handler.removeCallbacks(updateSeekBarTask);
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                updateSeekBar();
-            }
-        });
-
-        binding.btnToggle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (isPlaying) {
-                    exoPlayer.pause();
-                    isPlaying = false;
-                    binding.btnToggle.setImageResource(R.drawable.ic_play_big);
-                } else if (!isStarting) {
-                    isStarting = true;
-                    try {
-                        exoPlayer.setMediaItem(new MediaItem.Builder()
-                                .setUri(filePath)
-                                .setMediaMetadata(new MediaMetadata.Builder().setTitle(fileName).build())
-                                .build());
-                        exoPlayer.prepare();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    exoPlayer.setPlayWhenReady(true);
-                    binding.btnToggle.setImageResource(R.drawable.ic_pause_big);
-                    isPlaying = true;
-                    updateSeekBar();
-                } else {
-                    exoPlayer.setPlayWhenReady(true);
-                    isPlaying = true;
-                    binding.btnToggle.setImageResource(R.drawable.ic_pause_big);
-                }
-
-            }
-        });
-
-        binding.btnDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                recordViewModel.delete(Helper.RecordWithCategory2Record(record));
-            }
-        });
-
-        binding.btnEdit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Helper.openEditRecordDialog(RecordDetailActivity.this, record, recordViewModel, Gravity.CENTER);
-            }
-        });
+        // create ui
+        setupUi();
     }
 
     private Runnable updateSeekBarTask = new Runnable() {
@@ -242,5 +140,124 @@ public class RecordDetailActivity extends AppCompatActivity {
         bindService(playerServiceIntent, playerServiceConnection, Context.BIND_AUTO_CREATE);
         isBound = true;
     }
+
+    private void updateState(int image, boolean isPlaying, boolean isStarting) {
+        binding.btnToggle.setImageResource(image);
+        this.isPlaying = isPlaying;
+        this.isStarting = isStarting;
+    }
+
+    private MediaItem buildMediaItem() {
+        return new MediaItem.Builder()
+                .setUri(record.getFilePath())
+                .setMediaMetadata(new MediaMetadata.Builder().setTitle(record.getFileName()).build())
+                .build();
+    }
+
+    private void setupUi() {
+        audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+        // set status bar color
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(parseColor("#C67C4E"));
+        }
+
+        // set actionbar
+        setSupportActionBar(binding.toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setTitle(record.getFileName());
+
+        // set volume
+        binding.sliderVolume.setValueTo(maxVolume);
+        binding.sliderVolume.setValue(currentVolume);
+        binding.btnVolume.setImageResource(currentVolume == 0 ? R.drawable.ic_volume_off : R.drawable.ic_volume_on);
+
+        // setup record seekbar
+        binding.seekbar.setMax((int) Integer.parseInt(record.getDuration()));
+        binding.txtEndTime.setText(Helper.formatDuration(record.getDuration()));
+
+
+
+        // add listener to sliderVolume
+        binding.sliderVolume.addOnChangeListener(new Slider.OnChangeListener() {
+            @Override
+            public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, (int) value, 0);
+                binding.btnVolume.setImageResource(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) == 0 ?
+                        R.drawable.ic_volume_off : R.drawable.ic_volume_on);
+            }
+        });
+
+        // add listener to seekbar
+        binding.seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    exoPlayer.seekTo(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                handler.removeCallbacks(updateSeekBarTask);
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                updateSeekBar();
+            }
+        });
+
+
+        binding.btnToggle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isPlaying) {
+                    exoPlayer.pause();
+                } else
+                {
+                    if (!isStarting) {
+                        isStarting = true;
+                        try {
+                            exoPlayer.setMediaItem(buildMediaItem());
+                            exoPlayer.prepare();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    exoPlayer.setPlayWhenReady(true);
+                    updateSeekBar();
+                }
+
+                if (!isPlaying) {
+                    updateState(R.drawable.ic_pause_big, true, isStarting);
+                } else {
+                    updateState(R.drawable.ic_play_big, false, isStarting);
+                }
+            }
+        });
+
+        binding.btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                recordViewModel.delete(Helper.RecordWithCategory2Record(record));
+            }
+        });
+
+        binding.btnEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Helper.openEditRecordDialog(RecordDetailActivity.this, record, recordViewModel, Gravity.CENTER);
+            }
+        });
+    }
+
+
 
 }

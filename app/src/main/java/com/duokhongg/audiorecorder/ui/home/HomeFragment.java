@@ -258,7 +258,8 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
             mediaRecorder.prepare();
             mediaRecorder.start();
 
-            homeBinding.btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.ic_stop), null, null);
+            homeBinding.btnRecord.setCompoundDrawablesWithIntrinsicBounds(null,
+                    ContextCompat.getDrawable(requireContext(), R.drawable.ic_stop), null, null);
 
             // start timer
             timer.start();
@@ -275,7 +276,10 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
         mediaRecorder.release();
         mediaRecorder = null;
 
-        homeBinding.btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.ic_mic), null, null);
+        homeBinding.btnRecord
+                .setCompoundDrawablesWithIntrinsicBounds(null,
+                ContextCompat.getDrawable(requireContext(),
+                        R.drawable.ic_mic), null, null);
 
         timer.stop();
     }
