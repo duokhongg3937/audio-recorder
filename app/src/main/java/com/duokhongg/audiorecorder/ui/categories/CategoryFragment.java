@@ -57,7 +57,7 @@ public class CategoryFragment extends Fragment {
 
         if (Objects.requireNonNull(categoryViewModel.getAllCategories().getValue()).isEmpty())
         {
-            Category category = new Category("Delete", pickedColor);
+            Category category = new Category("Delete", Color.BLACK);
             categoryViewModel.insert(category);
         }
         categoryViewModel.getAllCategories().observe(getViewLifecycleOwner(), new Observer<List<Category>>() {

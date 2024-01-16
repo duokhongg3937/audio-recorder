@@ -26,6 +26,7 @@ import com.duokhongg.audiorecorder.RecordDetailActivity;
 import com.duokhongg.audiorecorder.R;
 import com.duokhongg.audiorecorder.data.model.RecordWithCategory;
 import com.duokhongg.audiorecorder.utils.FragmentCallbacks;
+import com.duokhongg.audiorecorder.utils.Helper;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -74,6 +75,7 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
         adapter.setOnItemClickListener(new RecordWithCategoryRVAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(RecordWithCategory record) {
+
                 Intent intent = new Intent(requireContext(), RecordDetailActivity.class);
                 intent.putExtra("file_path", record.getFilePath());
                 intent.putExtra("file_name", record.getFileName());

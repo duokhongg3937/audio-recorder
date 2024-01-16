@@ -204,7 +204,7 @@ public class RecordDetailActivity extends AppCompatActivity {
             public void onClick(View v) {
                 record.setTimeDelete(new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault()).format(new Date()));
                 record.setOldCategory(record.getCategoryId());
-                record.setCategoryId(0);
+                record.setCategoryId(1);
                 recordViewModel.update(Helper.RecordWithCategory2Record(record));
                 //recordViewModel.delete(Helper.RecordWithCategory2Record(record));
             }

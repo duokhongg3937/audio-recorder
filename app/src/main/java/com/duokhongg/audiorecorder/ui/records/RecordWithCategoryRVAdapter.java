@@ -94,8 +94,9 @@ public class RecordWithCategoryRVAdapter extends ListAdapter<RecordWithCategory,
                                 AudioRecordViewModel recordViewModel = new ViewModelProvider((ViewModelStoreOwner) holder.itemView.getContext()).get(AudioRecordViewModel.class);
                                 record.setTimeDelete(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
                                 record.setOldCategory(record.getCategoryId());
-                                record.setCategoryId(0);
+                                record.setCategoryId(1);
                                 recordViewModel.update(Helper.RecordWithCategory2Record(record));
+
                                 // recordViewModel.delete(Helper.RecordWithCategory2Record(getItem(position)));
                             }
                             return true;
