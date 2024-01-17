@@ -31,19 +31,15 @@ public class AudioRecordViewModel extends AndroidViewModel {
     public void insert(AudioRecord record) {
         repository.insert(record);
     }
-
     public void delete(AudioRecord record) {
         repository.delete(record);
     }
-
     public void update(AudioRecord record) {
         repository.update(record);
     }
-
     public LiveData<List<AudioRecord>> getAllRecords() {
         return allRecords;
     }
-
     public LiveData<List<RecordWithCategory>> getAllRecordsWithCategory() {
         return allRecordsWithCategory;
     }

@@ -92,7 +92,6 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks {
         }
     }
 
-
     private void replaceFragment(Fragment fragment) {
         fragmentManager.beginTransaction().replace(R.id.frameLayout, fragment).commitNow();
     }

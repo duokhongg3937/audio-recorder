@@ -25,8 +25,10 @@ public class AudioRecordRVAdapter extends ListAdapter<AudioRecord, AudioRecordRV
         super(DIFF_CALLBACK);
     }
 
+
     private static final DiffUtil.ItemCallback<AudioRecord> DIFF_CALLBACK =  new DiffUtil.ItemCallback<AudioRecord>() {
         @Override
+
         public boolean areItemsTheSame(@NonNull AudioRecord oldItem, @NonNull AudioRecord newItem) {
             return oldItem.getId() == newItem.getId();
         }
