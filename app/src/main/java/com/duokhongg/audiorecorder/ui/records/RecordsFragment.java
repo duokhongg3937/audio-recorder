@@ -60,7 +60,6 @@ public class RecordsFragment extends Fragment implements FragmentCallbacks {
             }
         });
 
-        int n = recordViewModel.getAllRecordsWithCategory().getValue().size();
 
         adapter.setOnItemClickListener(new RecordWithCategoryRVAdapter.OnItemClickListener() {
             @Override
