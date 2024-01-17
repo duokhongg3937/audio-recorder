@@ -21,8 +21,18 @@ public class CategoryDropdownAdapter extends BaseAdapter implements Filterable {
     Context context;
 
     public CategoryDropdownAdapter(List<Category> categoryList, Context context) {
-        this.categoryList = categoryList;
-        this.filteredList = categoryList;
+       if (categoryList.size() > 1)
+        {
+            this.categoryList = categoryList.subList(1,categoryList.size());
+            this.filteredList = categoryList.subList(1,categoryList.size());
+        }
+        else
+        {
+            this.categoryList = null;
+            this.filteredList = null;
+        }
+
+
         this.context = context;
     }
 

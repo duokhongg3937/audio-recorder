@@ -9,7 +9,6 @@ public class Timer {
         void onTimerTick(String value);
     }
 
-
     private Handler handler = new Handler(Looper.getMainLooper());
     private Runnable runnable;
     private long duration = 1L;

@@ -1,18 +1,24 @@
 package com.duokhongg.audiorecorder.ui.home;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.pm.PackageManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Environment;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,9 +65,46 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
     TextInputEditText edtFileName;
     int currentCategoryId = 0;
     CategoryViewModel categoryViewModel;
+    private TelephonyManager telephonyManager;
+    private PhoneStateListener phoneStateListener;
 
     AutoCompleteTextView txtCategory;
     public HomeFragment() {}
+    private static final int PERMISSION_REQUEST_READ_PHONE_STATE = 1;
+
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        if (ActivityCompat.checkSelfPermission(requireContext(), (Manifest.permission.READ_PHONE_STATE)) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+        }
+        telephonyManager = (TelephonyManager) requireActivity().getSystemService(Context.TELEPHONY_SERVICE);
+        phoneStateListener = new PhoneStateListener() {
+            @Override
+            public void onCallStateChanged(int state, String phoneNumber) {
+                super.onCallStateChanged(state, phoneNumber);
+                if (state == TelephonyManager.CALL_STATE_RINGING || state == TelephonyManager.CALL_STATE_OFFHOOK) {
+                    if (isRecording) {
+                        isRecording = false;
+                        mediaRecorder.pause();
+                        timer.pause();
+                        homeBinding.btnRecord.setCompoundDrawablesWithIntrinsicBounds(null, ContextCompat.getDrawable(requireContext(), R.drawable.ic_mic), null, null);
+                        Toast.makeText(requireActivity(), "A phone coming, stopped recording", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        };
+        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+    }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -104,7 +147,6 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
                 }
             }
         });
-
 
         homeBinding.btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -209,6 +251,7 @@ public class HomeFragment extends Fragment implements FragmentCallbacks, Timer.O
         categoryViewModel.getAllCategories().observe(getViewLifecycleOwner(), new Observer<List<Category>>() {
             @Override
             public void onChanged(List<Category> categoryList) {
+
                 CategoryDropdownAdapter categoryAdapter = new CategoryDropdownAdapter(categoryList, requireContext());
                 txtCategory = requireView().findViewById(R.id.txtCategory);
                 txtCategory.setAdapter(categoryAdapter);
