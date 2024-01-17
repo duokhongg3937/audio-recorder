@@ -18,13 +18,15 @@ public class RecordWithCategory implements Serializable {
 
     @ColumnInfo(name = "time_stamp")
     public String timeStamp;
+    @ColumnInfo(name = "time_delete")
+    public String timeDelete;
     public String duration;
-
     @ColumnInfo(name = "category_name")
     public String categoryName;
-
     @ColumnInfo(name = "category_color")
     public int categoryColor;
+    @ColumnInfo(name = "old_category")
+    public int oldCategory;
 
     public int getId() {
         return id;
@@ -58,6 +60,14 @@ public class RecordWithCategory implements Serializable {
         this.timeStamp = timeStamp;
     }
 
+    public String getTimeDelete() {
+        return timeDelete;
+    }
+
+    public void setTimeDelete(String timeDelete) {
+        this.timeDelete = timeDelete;
+    }
+
     public String getDuration() {
         return duration;
     }
@@ -89,4 +99,7 @@ public class RecordWithCategory implements Serializable {
     public void setCategoryId(int categoryId) {
         this.categoryId = categoryId;
     }
+
+    public int getOldCategory() { return oldCategory; }
+    public void setOldCategory(int oldCategory) { this.oldCategory = oldCategory; }
 }

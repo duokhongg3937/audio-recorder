@@ -25,6 +25,10 @@ import com.duokhongg.audiorecorder.data.repository.CategoryRepository;
 import com.duokhongg.audiorecorder.ui.categories.CategoryViewModel;
 import com.duokhongg.audiorecorder.utils.Helper;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 
 public class RecordWithCategoryRVAdapter extends ListAdapter<RecordWithCategory, RecordWithCategoryRVAdapter.ViewHolder> {
@@ -86,14 +90,24 @@ public class RecordWithCategoryRVAdapter extends ListAdapter<RecordWithCategory,
                     public boolean onMenuItemClick(MenuItem item) {
                         if (item.getItemId() == R.id.itemDelete) {
                             int position = holder.getAdapterPosition();
-                            if (position != RecyclerView.NO_POSITION) {
+                            if (position != RecyclerView.NO_POSITION && record.getCategoryId() != 1) {
+                                AudioRecordViewModel recordViewModel = new ViewModelProvider((ViewModelStoreOwner) holder.itemView.getContext()).get(AudioRecordViewModel.class);
+                                record.setTimeDelete(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
+                                record.setOldCategory(record.getCategoryId());
+                                record.setCategoryId(1);
+                                recordViewModel.update(Helper.RecordWithCategory2Record(record));
+
+                                // recordViewModel.delete(Helper.RecordWithCategory2Record(getItem(position)));
+                            }
+                            else if (record.getCategoryId() == 1)
+                            {
                                 AudioRecordViewModel recordViewModel = new ViewModelProvider((ViewModelStoreOwner) holder.itemView.getContext()).get(AudioRecordViewModel.class);
                                 recordViewModel.delete(Helper.RecordWithCategory2Record(getItem(position)));
                             }
                             return true;
                         } else if (item.getItemId() == R.id.itemEdit) {
                             int position = holder.getAdapterPosition();
-                            if (position != RecyclerView.NO_POSITION) {
+                            if (position != RecyclerView.NO_POSITION && record.getCategoryId() != 1) {
                                 AudioRecordViewModel recordViewModel = new ViewModelProvider((ViewModelStoreOwner) holder.itemView.getContext()).get(AudioRecordViewModel.class);
                                 Helper.openEditRecordDialog(holder.itemView.getContext(), getItem(position), recordViewModel, Gravity.CENTER);
                             }

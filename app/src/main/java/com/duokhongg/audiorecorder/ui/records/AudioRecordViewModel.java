@@ -6,6 +6,9 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
+import com.duokhongg.audiorecorder.data.AppDatabase;
+import com.duokhongg.audiorecorder.data.dao.AudioRecordDao;
+import com.duokhongg.audiorecorder.data.dao.AudioRecordDao_Impl;
 import com.duokhongg.audiorecorder.data.model.AudioRecord;
 import com.duokhongg.audiorecorder.data.model.RecordWithCategory;
 import com.duokhongg.audiorecorder.data.repository.AudioRecordRepository;
@@ -39,5 +42,9 @@ public class AudioRecordViewModel extends AndroidViewModel {
     }
     public LiveData<List<RecordWithCategory>> getAllRecordsWithCategory() {
         return allRecordsWithCategory;
+    }
+
+    public void deleteAllExpiredRecord() {
+        repository.deleteAllExpiredRecord();
     }
 }

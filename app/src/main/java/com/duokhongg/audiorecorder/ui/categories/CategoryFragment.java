@@ -29,6 +29,7 @@ import com.duokhongg.audiorecorder.databinding.FragmentCategoryBinding;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class CategoryFragment extends Fragment {
 
@@ -49,11 +50,16 @@ public class CategoryFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         adapter = new CategoryRVAdapter();
         searchView = requireView().findViewById(R.id.searchViewCategory);
-
         categoryBinding.listCategory.setLayoutManager(new LinearLayoutManager(getActivity()));
         categoryBinding.listCategory.setAdapter(adapter);
 
         categoryViewModel = new ViewModelProvider(requireActivity()).get(CategoryViewModel.class);
+
+        if (Objects.requireNonNull(categoryViewModel.getAllCategories().getValue()).isEmpty())
+        {
+            Category category = new Category("Delete", Color.BLACK);
+            categoryViewModel.insert(category);
+        }
         categoryViewModel.getAllCategories().observe(getViewLifecycleOwner(), new Observer<List<Category>>() {
             @Override
             public void onChanged(List<Category> categoryList) {
@@ -81,6 +87,7 @@ public class CategoryFragment extends Fragment {
                 return false;
             }
         });
+
     }
 
     @Override
